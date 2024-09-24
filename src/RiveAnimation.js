@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useRive, useStateMachineInput } from '@rive-app/react-canvas';
-import riveFile from './login-teddy.riv'; // Ensure the path is correct
+import riveFile from './animated_login_character.riv';
 import { useNavigate } from 'react-router-dom';
 
 const RiveAnimation = () => {
@@ -13,6 +13,7 @@ const RiveAnimation = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const inputRef = useRef(null);
+  const [typingTimer, setTypingTimer] = useState(null); // State to manage typing timer
 
   const { rive, RiveComponent } = useRive({
     src: riveFile,
@@ -61,9 +62,19 @@ const RiveAnimation = () => {
     setSessionName(value);
 
     if (isHandsUpInput) {
-      isHandsUpInput.value = true;
+        isHandsUpInput.value = true;
     }
-  };
+
+    if (typingTimer) {
+        clearTimeout(typingTimer);
+    }
+
+    setTypingTimer(setTimeout(() => {
+        if (isHandsUpInput) {
+            isHandsUpInput.value = false; // Reset the animation state
+        }
+    }, 500)); // Adjust the delay as needed
+};
 
   const resetAndTriggerFail = () => {
     if (trigFailInput) {
@@ -76,10 +87,20 @@ const RiveAnimation = () => {
     }
   };
 
+  const showError = (message) => {
+    setErrorMessage(message);
+    resetAndTriggerFail();
+    setTimeout(() => setErrorMessage(''), 3000); // Clear the error message after 3 seconds
+  };
+
+  const showSuccess = (message) => {
+    setSuccessMessage(message);
+    setTimeout(() => setSuccessMessage(''), 3000); // Clear the success message after 3 seconds
+  };
+
   const handleShowSessionNameInput = () => {
     if (!username) {
-      setErrorMessage('Name is required Dev');
-      resetAndTriggerFail();
+      showError('Name is required Dev');
       return;
     }
     setErrorMessage('');
@@ -89,8 +110,7 @@ const RiveAnimation = () => {
 
   const handleShowSessionIdInput = () => {
     if (!username) {
-      setErrorMessage('Name is required Dev');
-      resetAndTriggerFail();
+      showError('Name is required Dev');
       return;
     }
     setErrorMessage('');
@@ -102,57 +122,63 @@ const RiveAnimation = () => {
     event.preventDefault();
 
     if (!username) {
-      setErrorMessage('Username is required Dev');
-      resetAndTriggerFail();
-      return;
+        setErrorMessage('Username is required Dev');
+        resetAndTriggerFail();
+        setTimeout(() => setErrorMessage(false), 3000);
+        return;
     }
 
     if (!sessionName) {
-      setErrorMessage('Session name is required Dev');
-      resetAndTriggerFail();
-      return;
+        setErrorMessage('Session name is required Dev');
+        resetAndTriggerFail();
+        setTimeout(() => setErrorMessage(false), 3000);
+        return;
     }
 
     setErrorMessage('');
     setSuccessMessage(''); // Reset success message
 
     try {
-      const response = await fetch('http://localhost:8080/api/sessions/create/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, session_name: sessionName }), // Send session name
-      });
+        const response = await fetch('http://localhost:8080/api/sessions/create/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, session_name: sessionName }), // Send session name
+        });
 
-      const result = await response.json();
+        const result = await response.json();
 
-      if (response.ok) {
-        if (trigSuccessInput) trigSuccessInput.fire();
-        setSuccessMessage(`Session created successfully Dev! Session ID: ${result.session.session_id}`);
-        navigate(`/new-session/${result.session.session_id}`, { state: { username } });
-      } else {
-        if (trigFailInput) trigFailInput.fire();
-        setErrorMessage(result.error || 'Failed to create session Dev');
-      }
+        if (response.ok) {
+          if (trigSuccessInput) trigSuccessInput.fire();
+          setSuccessMessage(`Session created successfully ${username}! Session ID: ${result.session.session_id}`);
+
+            // Wait for a few seconds before navigating
+            setTimeout(() => {
+                navigate(`/new-session/${result.session.session_id}`, { state: { username } });
+            }, 3000);
+        } else {
+            if (trigFailInput) trigFailInput.fire();
+            setErrorMessage(result.error || 'Failed to create session Dev');
+            setTimeout(() => setErrorMessage(false), 3000);
+        }
     } catch (error) {
-      setErrorMessage('Network error');
-      resetAndTriggerFail();
+        setErrorMessage('Network error');
+        resetAndTriggerFail();
+        setTimeout(() => setErrorMessage(false), 3000);
     }
-  };
+};
 
   const handleJoinSession = async (event) => {
     event.preventDefault();
 
     if (!username) {
-      setErrorMessage('Username is required Dev');
-      resetAndTriggerFail();
+      showError('Username is required Dev');
       return;
     }
 
     if (!sessionId) {
-      setErrorMessage('Session ID is required Dev');
-      resetAndTriggerFail();
+      showError('Session ID is required Dev');
       return;
     }
 
@@ -172,15 +198,14 @@ const RiveAnimation = () => {
 
       if (response.ok) {
         if (trigSuccessInput) trigSuccessInput.fire();
-        setSuccessMessage('Session joined successfully Dev!');
+        showSuccess('Session joined successfully Dev!');
         navigate(`/new-session/${sessionId}`, { state: { username } });
       } else {
         if (trigFailInput) trigFailInput.fire();
-        setErrorMessage(result.error || 'Session not found');
+        showError(result.error || 'Session not found');
       }
     } catch (error) {
-      setErrorMessage('Network error');
-      resetAndTriggerFail();
+      showError('Network error');
     }
   };
 
