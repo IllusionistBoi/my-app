@@ -1,0 +1,113 @@
+/* General Page Styles */
+.home-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Horizontally center elements */
+    justify-content: center; /* Vertically center elements */
+    min-height: 100vh;
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    color: #fff;
+    font-family: 'Roboto', sans-serif;
+    text-align: center;
+    padding: 20px;
+    background-image: url("/public/homepagev2.png");
+    background-size: cover;
+    background-position: center;
+}
+
+/* Header Styles */
+h1 {
+    font-size: 3rem;
+    margin-bottom: 30px;
+}
+
+/* Input Group Styles */
+.input-group {
+    margin: 20px 0;
+    width: 100%;
+    padding-left: 50px;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center-align the label and input */
+}
+
+.input-group label {
+    /* display: block; */
+    margin-bottom: 10px;
+    text-align: center; /* Center-align label text */
+}
+
+.input-group input {
+    padding: 15px;
+    font-size: 1rem;
+    width: 100%;
+    max-width: 400px; /* Ensure the input doesn't stretch too far */
+    border-radius: 8px;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 15px;
+    text-align: center; /* Center text inside the input box */
+}
+
+/* Button Group Styling */
+.button-group {
+    margin-top: 30px;
+    display: flex;
+    padding-left: 50px;
+    justify-content: center; /* Center-align buttons horizontally */
+    width: 100%;
+    max-width: 400px;
+    gap: 20px; /* Adds space between the buttons */
+}
+
+/* General Button Styling */
+button {
+    padding: 12px 25px;
+    font-size: 1rem;
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    background-color: #333;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+    flex: 1; /* Makes buttons expand evenly */
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+/* Button Color Classes */
+.show-session-name-button {
+    background-color: #FFC107; /* Amber */
+}
+
+.show-session-id-button {
+    background-color: #FF5722; /* Deep Orange */
+}
+
+.create-session-button {
+    background-color: #4CAF50; /* Green */
+}
+
+.enter-session-button {
+    background-color: #008CBA; /* Blue */
+}
+
+/* Error Message Styling */
+.error-message {
+    color: red;
+    font-size: 1rem;
+    animation: shake 0.5s ease-in-out;
+}
+
+/* Keyframes for Shaking Animation */
+@keyframes shake {
+    0% { transform: translateX(-10px); }
+    25% { transform: translateX(10px); }
+    50% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+    100% { transform: translateX(0); }
+}
