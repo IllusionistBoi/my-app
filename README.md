@@ -1,70 +1,64 @@
-# Getting Started with Create React App
+# Poker Planning App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This project is a **Poker Planning App** designed to facilitate agile estimation using Planning Poker. The app was created using **Create React App** for the frontend, with animations powered by **Rive**, and **Django** for the backend to manage sessions and participants.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- **Create and Join Sessions**: Users can create or join sessions with a unique session ID.
+- **Real-time Voting**: Participants vote on task effort using Planning Poker buttons (1, 3, 5, 8, 13).
+- **Flip Cards**: Reveal the chosen votes of all participants after voting.
+- **Dynamic UI with Animations**: The app includes interactive animations (Teddy) for enhanced user engagement.
+- **Backend with Django**: Sessions and participants are managed through a Django backend.
 
-### `npm start`
+## Getting Started
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+To get started with the project, follow these steps.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Prerequisites
 
-### `npm test`
+- Node.js and npm installed on your machine
+- Python and Django set up for the backend
+- Rive file (`login-teddy.riv`) placed in the `public` directory
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Installation
 
-### `npm run build`
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-repo/poker-planning-app.git
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+2. Navigate to the project directory:
+   ```bash
+   cd poker-planning-app
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+3. Install dependencies:
+    ```bash
+    npm start
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+This will start the app in development mode. Open http://localhost:3000 to view the app in the browser.
 
-### `npm run eject`
+### Backend Setup
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+For the backend, navigate to the backend folder and follow the instructions in backend/README.md to set up Django, create the necessary models, and run the server.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### Available Scripts
+You can run the following scripts from the project directory:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- **npm start**: Runs the app in development mode.
+- **npm test**: Launches the test runner.
+- **npm run build**: Builds the app for production.
+- **npm run eject**: Ejects the app configuration for custom setups (irreversible action).
 
-## Learn More
+## Customization
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Animations
+This app integrates Rive animations for interactive user experiences. To customize the animations:
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- Ensure the Rive file (login-teddy.riv) is placed in the public directory.
+- Modify the animation states such as isChecking, isHandsUp, trigSuccess, and trigFail for different actions like form submission, validation, and error handling.
 
-### Code Splitting
+## Voting Feature
+The voting interface includes 5 buttons representing numbers (1, 3, 5, 8, 13) used for estimating effort in an agile project. A Flip Card feature reveals votes after all participants have voted.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## UI Customization
+The participant list, session ID display, and voting buttons are fully customizable using CSS. For an elegant, modern look, custom icons can be added next to participants’ names.
