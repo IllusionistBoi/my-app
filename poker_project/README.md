@@ -90,6 +90,6 @@ To deploy the backend, follow these steps:
     python manage.py migrate
     python manage.py collectstatic
 
-Start the production server:
-    ```bash
+- Start the production server:
+   ```bash
     gunicorn backend.wsgi:application --bind 0.0.0.0:8000
