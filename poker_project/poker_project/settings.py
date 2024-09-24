@@ -59,6 +59,7 @@ ROOT_URLCONF = 'poker_project.urls'
 # Allow requests from your React app
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React app's default port
+    "https://my-app-tau-seven-25.vercel.app/"
 ]
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
