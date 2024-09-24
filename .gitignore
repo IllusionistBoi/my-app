@@ -8,6 +8,8 @@
 # testing
 /coverage
 
+/poker_project/staticfiles
+
 # production
 /build
 

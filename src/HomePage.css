@@ -9,8 +9,7 @@
     color: #fff;
     font-family: 'Roboto', sans-serif;
     text-align: center;
-    padding: 10px;
-    background-image: url("/public/homepagev2.png");
+    background-image: url("/public/f.jpg");
     background-size: cover;
     background-position: center;
 }
@@ -52,7 +51,6 @@ h1 {
 
 /* Button Group Styling */
 .button-group {
-    margin-top: 30px;
     display: flex;
     padding-left: 50px;
     justify-content: center; /* Center-align buttons horizontally */
