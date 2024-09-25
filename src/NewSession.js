@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import Confetti from 'react-confetti';
 import './NewSession.css';
 
 const NewSession = () => {
     const { sessionId } = useParams();
     const location = useLocation();
+    const navigate = useNavigate();  // Initialize useNavigate
     const { username } = location.state || {};
     const [participants, setParticipants] = useState([]);
     const [votes, setVotes] = useState({});
@@ -141,17 +142,24 @@ const NewSession = () => {
         }
     };
 
+    const handleReturnHome = () => {
+        navigate('/'); // Change this to your homepage route if it's different
+    };
+
+    const handleCopySession = () => {
+        navigator.clipboard.writeText(sessionId);
+        setSuccessMessage('Session ID copied to clipboard!');
+        setTimeout(() => setSuccessMessage(''), 3000);
+    }
+
     const isCreator = creator === username;
 
     return (
         <div className="new-session-container">
             {showConfetti && <Confetti />}
             <h1 className="session-welcome">Welcome, Dev's</h1>
-            <h2 className="session-intro">
-                You've unlocked the gateway to Session: <span className="session-id">{sessionId}</span> By <span className="session-name">{sessionName}</span>
-            </h2>
             <div className="session-id-box">
-                <p className="session-storyline">Together we build, estimate, and succeed. Every point matters—choose wisely and shape the future of our sprint!</p>
+                <p className="session-intro">You've unlocked the gateway to Session: <span className="session-id">{sessionId}</span> By <span className="session-name">{sessionName}</span></p>
             </div>
 
             {successMessage && <div className="success-message">{successMessage}</div>}
@@ -201,6 +209,9 @@ const NewSession = () => {
                     ))}
                 </div>
             )}
+
+            <button className="return-home-button" onClick={handleReturnHome}>Return to Homepage</button>
+            <button className="copy-session-link" onClick={handleCopySession}>Copy Session ID</button>
         </div>
     );
 };
