@@ -18,13 +18,14 @@
 h1 {
     font-size: 3rem;
     margin-bottom: 30px;
+    margin-top: -20px;
+    padding-left: -25px;
 }
 
 /* Input Group Styles */
 .input-group {
     margin: 20px 0;
     width: 100%;
-    padding-left: 50px;
     max-width: 400px;
     display: flex;
     flex-direction: column;
@@ -32,7 +33,7 @@ h1 {
 }
 
 .input-group label {
-    /* display: block; */
+    padding-left: -10px;
     margin-bottom: 10px;
     text-align: center; /* Center-align label text */
 }
@@ -52,7 +53,6 @@ h1 {
 /* Button Group Styling */
 .button-group {
     display: flex;
-    padding-left: 50px;
     justify-content: center; /* Center-align buttons horizontally */
     width: 100%;
     max-width: 400px;
