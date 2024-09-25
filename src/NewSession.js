@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import Confetti from 'react-confetti';
 import './NewSession.css';
+// import RiveAnimation from './RiveAnimation';
 
 const NewSession = () => {
     const { sessionId } = useParams();
@@ -156,6 +157,7 @@ const NewSession = () => {
 
     return (
         <div className="new-session-container">
+            {/* <RiveAnimation ></RiveAnimation> */}
             {showConfetti && <Confetti />}
             <h1 className="session-welcome">Welcome, Dev's</h1>
             <div className="session-id-box">
