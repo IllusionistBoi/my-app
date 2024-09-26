@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import Confetti from 'react-confetti';
 import './NewSession.css';
-// import RiveAnimation from './RiveAnimation';
 
 const NewSession = () => {
     const { sessionId } = useParams();
@@ -17,11 +16,12 @@ const NewSession = () => {
     const [showConfetti, setShowConfetti] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
+    // const [isSpectator, setIsSpectator] = useState(false);
 
     useEffect(() => {
         const fetchSessionDetails = async () => {
             try {
-                const response = await fetch(`http://localhost:8080/api/sessions/${sessionId}/details/`);
+                const response = await fetch(`https://l9c2jn1c-8080.euw.devtunnels.ms/api/sessions/${sessionId}/details/`);
                 const result = await response.json();
                 if (response.ok) {
                     setParticipants(result.participants);
@@ -45,14 +45,16 @@ const NewSession = () => {
         return () => clearInterval(intervalId);
     }, [sessionId, flipResults]);
 
+    // const handleVote = async (vote, is_spectator = false) => {
     const handleVote = async (vote) => {
         try {
-            const response = await fetch(`http://localhost:8080/api/sessions/${sessionId}/cast_vote/`, {
+            const response = await fetch(`https://l9c2jn1c-8080.euw.devtunnels.ms/api/sessions/${sessionId}/cast_vote/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ username, sessionId, vote }),
+                // body: JSON.stringify({ username, sessionId, vote, is_spectator }),
             });
 
             const result = await response.json();
@@ -60,6 +62,7 @@ const NewSession = () => {
             if (response.ok) {
                 setSuccessMessage('Vote recorded successfully!');
                 setVotes(prevVotes => ({ ...prevVotes, [username]: vote }));
+                // setVotes(prevVotes => ({ ...prevVotes, [username]: { vote, is_spectator: isSpectator } }));
                 setTimeout(() => setSuccessMessage(''), 3000);
             } else {
                 setErrorMessage(result.error || 'Error recording vote.');
@@ -71,7 +74,7 @@ const NewSession = () => {
 
     const handleResetVotes = async () => {
         try {
-            const response = await fetch(`http://localhost:8080/api/sessions/${sessionId}/reset_votes/`, {
+            const response = await fetch(`https://l9c2jn1c-8080.euw.devtunnels.ms/api/sessions/${sessionId}/reset_votes/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -95,7 +98,7 @@ const NewSession = () => {
 
     const handleFlipVotes = async () => {
         try {
-            const response = await fetch(`http://localhost:8080/api/sessions/${sessionId}/flip_votes/`, {
+            const response = await fetch(`https://l9c2jn1c-8080.euw.devtunnels.ms/api/sessions/${sessionId}/flip_votes/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -119,7 +122,7 @@ const NewSession = () => {
 
     const clearVote = async () => {
         try {
-            const response = await fetch(`http://localhost:8080/api/sessions/${sessionId}/clear_vote/`, {
+            const response = await fetch(`https://l9c2jn1c-8080.euw.devtunnels.ms/api/sessions/${sessionId}/clear_vote/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -157,11 +160,10 @@ const NewSession = () => {
 
     return (
         <div className="new-session-container">
-            {/* <RiveAnimation ></RiveAnimation> */}
             {showConfetti && <Confetti />}
             <h1 className="session-welcome">Welcome, Dev's</h1>
             <div className="session-id-box">
-                <p className="session-intro">You've unlocked the gateway to Session: <span className="session-id">{sessionId}</span> By <span className="session-name">{sessionName}</span></p>
+                <p className="session-intro">You've Unlocked The Gateway To Session: <span className="session-id">{sessionId}</span> By <span className="session-name">{sessionName}</span></p>
             </div>
 
             {successMessage && <div className="success-message">{successMessage}</div>}
@@ -179,6 +181,10 @@ const NewSession = () => {
                     </div>
                 ))}
             </div>
+            {/* <div className="spectator-toggle">
+                <input type="checkbox" id="spectator-checkbox" checked={isSpectator} onChange={(e) => setIsSpectator(e.target.checked)} />
+                <label htmlFor="spectator-checkbox">Spectator</label>
+            </div> */}
             <div className="voting-buttons">
                 {[1, 3, 5, 8, 13].map((num) => (
                     <button
@@ -202,7 +208,7 @@ const NewSession = () => {
 
             {flipResults && (
                 <div className="flip-results">
-                    <h2>Vote Results:</h2>
+                    <h2>Vote Results</h2>
                     {Object.entries(flipResults).map(([user, vote]) => (
                         <div key={user} className="result-card">
                             <span className="result-user">{user} : </span>

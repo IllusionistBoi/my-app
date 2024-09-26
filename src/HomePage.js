@@ -89,7 +89,7 @@ const HomePage = () => {
       return;
     }
     try {
-      const response = await fetch('http://localhost:8080/api/sessions/create/', {
+      const response = await fetch('https://l9c2jn1c-8080.euw.devtunnels.ms/api/sessions/create/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, session_name: sessionName }),
@@ -117,13 +117,11 @@ const HomePage = () => {
       return;
     }
     try {
-      const response = await fetch('http://localhost:8080/api/sessions/join/', {
+      const response = await fetch('https://l9c2jn1c-8080.euw.devtunnels.ms/api/sessions/join/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, sessionId }),
       });
-
-      const result = await response.json();
 
       if (response.ok) {
         showSuccess('Session joined successfully!');

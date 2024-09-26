@@ -32,13 +32,14 @@
 }
 
 .session-intro {
-    font-family: 'Orbitron', sans-serif;
-    color: #c1baea;
+    font-family: 'DM Sans Merlin';
+    font-weight: 100px;
+    color: #d6dc2b;
     font-size: 20px;
     text-align: center;
     text-shadow: 0 0 15px rgba(62, 39, 192, 0.9);
     margin-top: 5px;
-    animation: fadeIn 4s ease-in-out;
+    animation: fadeIn 2s ease-in-out;
 }
 
 @keyframes fadeIn {
@@ -199,6 +200,7 @@ h1 {
     margin-bottom: 20px;
     font-size: 28px;
     color: #ffffff;
+    font-family: 'Orbitron', sans-serif;
 }
 
 .result-card {
@@ -207,27 +209,27 @@ h1 {
     backdrop-filter: blur(10px);
     border-radius: 8px;
     padding: 15px;
+    font-family: 'Orbitron', sans-serif;
     margin: 10px 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
     transition: transform 0.3s ease, background-color 0.3s ease;
-    animation: fadeIn 2s ease-in-out;
 }
 
 .result-card:hover {
     transform: translateY(-3px);
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: #5427be;
 }
 
 .result-user {
     font-weight: bold;
-    color: #ffffff;
+    color: #d6dc2b;
     margin-right: 10px;
 }
 
 .result-vote {
-    color: #ffffff;
+    color: #d6dc2b;
     font-size: 1.2rem;
 }
 
@@ -318,4 +320,17 @@ h1 {
 
 .copy-session-link:hover {
     background-color: #5427be;
+}
+
+.badge {
+    background-color: gold;
+    color: black;
+    padding: 2px 8px;
+    border-radius: 5px;
+    font-size: 12px;
+    margin: 5px 0;
+}
+
+.spectator-badge {
+    background-color: rgba(0, 0, 255, 0.5); /* blue color for spectators */
 }

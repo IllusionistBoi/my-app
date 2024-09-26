@@ -62,6 +62,7 @@ def join_session(request):
 def cast_vote(request, session_id):
     username = request.data.get('username')
     vote = request.data.get('vote')
+    # is_spectator = request.data.get('is_spectator', False)
 
     # Fetch the session based on session_id
     try:
@@ -72,6 +73,7 @@ def cast_vote(request, session_id):
     # Update the votes
     if username and vote:
         session.votes[username] = vote  # Update the votes dictionary
+        # session.votes[username] = {'vote': vote, 'is_spectator': is_spectator}
         session.save()
         return Response({'message': 'Vote recorded successfully!'}, status=status.HTTP_200_OK)
     else:

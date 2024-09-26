@@ -54,7 +54,7 @@ To set up the backend, ensure the following are installed on your machine:
    ```bash
     python manage.py runserver 8080
 
-Your backend will be available at http://localhost:8080.
+Your backend will be available at https://l9c2jn1c-8080.euw.devtunnels.ms.
 
 ## Models
 The backend uses the following Django models to manage sessions and participants:
