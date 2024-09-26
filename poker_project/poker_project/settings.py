@@ -59,7 +59,9 @@ ROOT_URLCONF = 'poker_project.urls'
 # Allow requests from your React app
 CORS_ALLOWED_ORIGINS = [
     "https://my-app-tau-seven-25.vercel.app",
-    "http://localhost:3000",  # Keep this for local development
+    "http://localhost:3000",
+    "https://l9c2jn1c-3000.euw.devtunnels.ms",
+    "https://l9c2jn1c-8080.euw.devtunnels.ms"
 ]
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
