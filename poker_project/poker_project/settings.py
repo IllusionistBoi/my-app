@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'poker_project',
     'corsheaders',
-    'session_management'
+    'session_management',
 ]
 
 MIDDLEWARE = [
@@ -60,8 +60,9 @@ ROOT_URLCONF = 'poker_project.urls'
 CORS_ALLOWED_ORIGINS = [
     "https://my-app-tau-seven-25.vercel.app",
     "http://localhost:3000",
-    "https://l9c2jn1c-3000.euw.devtunnels.ms",
-    "https://l9c2jn1c-8080.euw.devtunnels.ms"
+    "http://localhost:8080",
+    "https://ldxrn7z0-3000.euw.devtunnels.ms",
+    "https://ldxrn7z0-8080.euw.devtunnels.ms",
 ]
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'

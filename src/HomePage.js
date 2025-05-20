@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import RiveAnimation from './RiveAnimation';
 import { useNavigate } from 'react-router-dom';
 import './HomePage.css';
+import { API } from "./config";
 
 const HomePage = () => {
   const [username, setUsername] = useState('');
@@ -89,10 +90,10 @@ const HomePage = () => {
       return;
     }
     try {
-      const response = await fetch('https://l9c2jn1c-8080.euw.devtunnels.ms/api/sessions/create/', {
+      const response = await fetch(`${API}/sessions/create/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, session_name: sessionName }),
+        body: JSON.stringify({ username: username.toLowerCase(), session_name: sessionName }),
       });
 
       const result = await response.json();
@@ -100,7 +101,7 @@ const HomePage = () => {
       if (response.ok) {
         showSuccess(`Session created successfully!`);
         setTimeout(() => {
-          navigate(`/new-session/${result.session.session_id}`, { state: { username } });
+          navigate(`/new-session/${result.session.session_id}`, { state: { username: username.toLowerCase() } });
         }, 3000);
       } else {
         showError('Failed to create session');
@@ -112,20 +113,20 @@ const HomePage = () => {
 
   const handleJoinSession = async (event) => {
     event.preventDefault();
-    if (!username || !sessionId) {
+    if (!username.toLowerCase() || !sessionId) {
       showError('Username and session ID are required');
       return;
     }
     try {
-      const response = await fetch('https://l9c2jn1c-8080.euw.devtunnels.ms/api/sessions/join/', {
+      const response = await fetch(`${API}/sessions/join/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, sessionId }),
+        body: JSON.stringify({ username: username.toLowerCase(), sessionId }),
       });
 
       if (response.ok) {
         showSuccess('Session joined successfully!');
-        navigate(`/new-session/${sessionId}`, { state: { username } });
+        navigate(`/new-session/${sessionId}`, { state: { username: username.toLowerCase() } });
       } else {
         showError('Session not found');
       }

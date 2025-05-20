@@ -5,6 +5,9 @@ from session_management.models import Session
 from session_management.serializers import SessionSerializer
 from django.contrib.auth.models import User
 from session_management.utils import generate_session_id
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+from django.http import JsonResponse
 
 
 @api_view(['POST'])
@@ -62,8 +65,7 @@ def join_session(request):
 def cast_vote(request, session_id):
     username = request.data.get('username')
     vote = request.data.get('vote')
-    # is_spectator = request.data.get('is_spectator', False)
-
+    is_spectator = request.data.get('is_spectator', False)
     # Fetch the session based on session_id
     try:
         session = Session.objects.get(session_id=session_id)
@@ -72,8 +74,7 @@ def cast_vote(request, session_id):
 
     # Update the votes
     if username and vote:
-        session.votes[username] = vote  # Update the votes dictionary
-        # session.votes[username] = {'vote': vote, 'is_spectator': is_spectator}
+        session.votes[username] = {'vote': vote, 'is_spectator': is_spectator}
         session.save()
         return Response({'message': 'Vote recorded successfully!'}, status=status.HTTP_200_OK)
     else:
@@ -101,7 +102,7 @@ def clear_vote(request, session_id):
 
     # Remove the vote for the user
     if username in session.votes:
-        del session.votes[username]  # Remove the user's vote
+        session.votes[username]['vote'] = None
         session.save()
         return Response({'message': 'Vote cleared successfully!'}, status=status.HTTP_200_OK)
     else:
@@ -139,10 +140,11 @@ def reset_votes(request, session_id):
     except Session.DoesNotExist:
         return Response({'error': 'Session not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    # Clear all votes
-    session.votes.clear()
-    session.save()
+    # Reset all votes to null while keeping is_spectator intact
+    for username, vote_info in session.votes.items():
+        vote_info['vote'] = None
 
+    session.save()
     return Response({'message': 'Votes have been reset successfully!'}, status=status.HTTP_200_OK)
 
 
@@ -158,5 +160,61 @@ def get_session_details(request, session_id):
             'participants': participants_names,
             'votes': session.votes,
         }, status=status.HTTP_200_OK)
+    except Session.DoesNotExist:
+        return Response({'error': 'Session not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+def make_spectator(request, session_id):
+    try:
+        session = Session.objects.get(session_id=session_id)
+        is_spectator = request.data.get('is_spectator', False)
+        username = request.data.get('username')
+        vote = request.data.get('vote', None)
+        if username:
+            session.votes.setdefault(username, {})['vote'] = vote  # Use setdefault
+            session.votes[username]['is_spectator'] = is_spectator
+            session.save()
+            return Response({'message': f'User {username} is spectator {is_spectator}'}, status=status.HTTP_200_OK)
+
+    except Session.DoesNotExist:
+        return Response({'error': 'Session not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+def remove_user(request, session_id):
+    username_to_remove = request.data.get('username')
+    if not username_to_remove:
+        return Response({'error': 'Username is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        session = Session.objects.get(session_id=session_id)
+    except Session.DoesNotExist:
+        return Response({'error': 'Session not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    try:
+        user_to_remove = User.objects.get(username=username_to_remove)
+    except User.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    if session.created_by == user_to_remove:
+        return Response({'error': 'The Creator cannot remove themselves from the session.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Check if the user is a participant in the session
+    if user_to_remove in session.participants.all():
+        session.participants.remove(user_to_remove)
+        session.save()
+        return Response({'message': f'{username_to_remove} has been removed from the session.'}, status=status.HTTP_200_OK)
+    else:
+        return Response({'error': f'{username_to_remove} is not a participant in this session.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['DELETE'])
+def delete_session(request, session_id):
+    try:
+        session = Session.objects.get(session_id=session_id)
+        session.delete()
+        return Response({'message': 'Session Deleted successfully!'}, status=status.HTTP_200_OK)
+
     except Session.DoesNotExist:
         return Response({'error': 'Session not found'}, status=status.HTTP_404_NOT_FOUND)

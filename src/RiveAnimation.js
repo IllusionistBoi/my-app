@@ -63,7 +63,7 @@ const RiveAnimation = ({ username, sessionName, sessionId, handleFailAnimation, 
     }
   }, [handleSuccessAnimation, trigSuccessInput]);
 
-  return <RiveComponent style={{ width: '500px', height: '500px' }} />;
+  return <RiveComponent style={{ width: '500px', height: '500px', "padding-left": '20px' }} />;
 };
 
 export default RiveAnimation;

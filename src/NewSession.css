@@ -9,22 +9,18 @@
     background-position: center;
 }
 
-.session-id-box {
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
+.session-box {
     padding-right: 10px;
     padding-left: 10px;
     padding-top: 12px;
     border-radius: 15px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
     text-align: center;
     font-size: 20px;
-    color: white;
 }
 
 .session-welcome {
     font-family: 'Orbitron', sans-serif;
-    color: #f0f0f0;
+    color: #FAC921;
     font-size: 48px;
     text-align: center;
     text-shadow: 0 0 15px rgba(62, 39, 192, 0.9);
@@ -122,6 +118,14 @@
     transition: transform 0.3s ease;
 }
 
+.voting-cards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px;
+  }
+
 .vote-button img {
     width: 80px;
     height: 120px;
@@ -188,7 +192,7 @@ h1 {
     background: rgba(255, 255, 255, 0.15);
     border-radius: 10px;
     padding: 20px;
-    color: white;
+    color: #FAC921;
     font-size: 18px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
     max-width: 600px;
@@ -199,7 +203,7 @@ h1 {
     text-align: center;
     margin-bottom: 20px;
     font-size: 28px;
-    color: #ffffff;
+    color: #FAC921;
     font-family: 'Orbitron', sans-serif;
 }
 
@@ -327,10 +331,27 @@ h1 {
     color: black;
     padding: 2px 8px;
     border-radius: 5px;
-    font-size: 12px;
+    font-size: 15px;
+    font-family: 'Orbitron', sans-serif;
     margin: 5px 0;
 }
 
 .spectator-badge {
-    background-color: rgba(0, 0, 255, 0.5); /* blue color for spectators */
+    color: rgb(250, 248, 248);
+    padding: 2px 8px;
+    border-radius: 5px;
+    font-size: 15px;
+    font-family: 'Orbitron', sans-serif;
+    margin: 5px 0;
+    background-color: rgb(16, 93, 181) /* blue color for spectators */
+}
+
+.remove-user-button {
+    background-color: rgb(232, 41, 27);
+    color: rgb(250, 248, 248);
+    padding: 2px 8px;
+    border-radius: 5px;
+    font-size: 15px;
+    font-family: 'Orbitron', sans-serif;
+    margin: 5px 0;
 }
