@@ -105,11 +105,14 @@ Local verification completed on 5 July 2026:
 - Backend regression: 23 tests passed with one expected PostgreSQL-only local skip; migration drift and system checks passed.
 - Manual browser review: desktop and 320 px home, forms, footer, room, selected card, reveal burst and settled results inspected; application console clean.
 
-Remote release completion additionally requires:
+Remote release completed on 5 July 2026:
 
-- GitHub CI passes all jobs.
-- Both Vercel projects report `READY` for the committed SHA.
-- The fixed production URL serves the redesign and the API version reports the same SHA.
-- Vercel runtime error scans are clean.
+- GitHub CI passed all five jobs for application release `1aefcc1776b80d9eed9b4d2eb051b86574dbeeb8`, including dependency audits, repository hygiene, backend checks and multi-browser E2E.
+- Both Git-backed Vercel projects reached `READY` for that SHA with their fixed production aliases and no alias errors.
+- The fixed frontend returned HTTP 200; same-origin API readiness returned `ready`; the API version reported the release SHA.
+- The live production Playwright suite passed 3/3 after deployment, including the Rive runtime, two-participant room flow, 320 px layout, reduced motion, clean console and room cleanup.
+- The production CSP permits `'wasm-unsafe-eval'` but not general `'unsafe-eval'`.
+- Runtime-error scans were empty for both Vercel projects.
+- The manually triggered free uptime workflow passed for the release SHA.
 
 Detailed security, backend, deployment, recovery and free-plan operations remain canonical in `CLAUDE.md`. The full audit and implementation chronology live in `tasks/todo.md`.

@@ -347,14 +347,14 @@ Severity:
 - [x] Extend unit/E2E coverage for the redesigned flows, Rive fallback, responsive layout, reduced motion, and clean browser console.
 - [x] Create `PROJECT.md`; update `README.md`, `CLAUDE.md`, and the implementation log with the design system, asset provenance, motion rules, and verification evidence.
 - [x] Run clean tests, audits, production build/size checks, local full-stack browser review, and mobile/desktop visual inspection.
-- [ ] Commit and push the redesign, verify GitHub CI and both Vercel deployments, smoke-test the fixed production URL, and scan runtime errors.
+- [x] Commit and push the redesign, verify GitHub CI and both Vercel deployments, smoke-test the fixed production URL, and scan runtime errors.
 
 #### Phase 8 production re-plan
 
 - [x] Add the narrow `'wasm-unsafe-eval'` CSP source required for Rive WebAssembly compilation; do not permit general `'unsafe-eval'`.
 - [x] Re-run unit tests, production build, and local CSP/config checks.
-- [ ] Commit and push the CSP correction, then wait for GitHub CI and both Vercel projects to deploy the same SHA.
-- [ ] Re-run the complete live Playwright suite, readiness/version probes, visual inspection, uptime workflow, and runtime-error scans.
+- [x] Commit and push the CSP correction, then wait for GitHub CI and both Vercel projects to deploy the same SHA.
+- [x] Re-run the complete live Playwright suite, readiness/version probes, visual inspection, uptime workflow, and runtime-error scans.
 
 ## Definition of done
 
@@ -394,6 +394,7 @@ _No application behavior changes started before completion of this findings regi
 - 2026-07-05: Upgraded GitHub Actions to Node 24-compatible majors. Final CI passed all five jobs without deprecated-runtime warnings; both Git-backed Vercel deployments reached `READY`, fixed aliases returned HTTP 200, the production API reported the expected Git SHA, the manual uptime run passed, and both projects had no runtime errors.
 - 2026-07-05: The first post-redesign production E2E run found Rive WebAssembly blocked by the otherwise-correct `script-src 'self'` policy. Release closure stopped and was re-planned around the least-permissive CSP correction, `'wasm-unsafe-eval'`, followed by a full local and live re-verification.
 - 2026-07-05: The first CSP regression-test run exposed Vite's non-file `import.meta.url` transform in Vitest. Re-planned the fixture lookup around the test working directory and restarted local verification; no application behavior was affected.
+- 2026-07-05: Application release `1aefcc1` passed all five GitHub CI jobs and reached `READY` on both fixed production aliases. The live suite passed 3/3 with the authored Rive teddy compiling under the narrow CSP, no console/page errors, responsive and reduced-motion checks, and test-room cleanup; readiness/version probes, visual inspection, uptime workflow, and both Vercel runtime-error scans also passed.
 - 2026-07-05: Recovered the original `animated_login_character.riv` teddy from pre-cleanup Git history and rebuilt the frontend around a warm-black/orange portfolio-inspired visual system. Added state-driven Rive reactions, locally hosted Clash/Geist fonts, a complete footer, quirky typed feedback, reveal commentary, tactile card motion, a reduced-motion-safe card burst, pinned Rive WASM hosts under CSP, and a preview-backed local review proxy.
 - 2026-07-05: Redesign verification passed locally: clean Node 24 install, 10/10 unit tests, 3/3 Playwright flows with two isolated participants, hidden votes, reveal/reset/cleanup, 320px no-overflow and reduced-motion checks; 617,287-byte build under the 700KB total/300KB JS ceilings; zero npm advisories; and 23 backend tests passed with one expected PostgreSQL-only local skip.
 - Remaining paid-only options are intentionally declined: purchased custom domain, Vercel monitoring add-ons, and database upgrades.
