@@ -326,6 +326,7 @@ Severity:
 - [x] Point the frontend same-origin `/api` proxy and CSP at the new backend, deploy a preview, and run live full-stack smoke tests.
 - [x] Deploy the tested frontend to production and verify the fixed production alias, two-browser workflow, responsive layout, console, and rollback path.
 - [x] Create a clean root commit, force-push the replacement `master` history, and delete the obsolete remote feature branch containing another database copy.
+- [x] Connect both Vercel projects to the clean GitHub repository with roots `frontend` and `backend/poker_project`.
 - [x] Update all documentation to describe the free Vercel + Neon architecture, stable domain, quotas, and recovery steps.
 - [ ] Optionally add free external uptime monitoring; do not enable a paid custom domain, monitoring add-on, database plan, or Vercel plan.
 
@@ -362,4 +363,5 @@ _No application behavior changes started before completion of this findings regi
 - 2026-07-05: Fixed the legacy UUID-to-bigint migration defect exposed by the first real PostgreSQL migration. Clean Neon production and preview schemas now migrate through `0009`.
 - 2026-07-05: Deployed and verified fixed free aliases for frontend/backend production and preview. Both live environments passed isolated two-context E2E coverage, hidden-vote/reveal/reset behavior, 320px layout, console/page-error assertions, security headers, cleanup, and runtime-error scans.
 - 2026-07-05: Replaced the remote `master` history with clean root commit `68f5cca` and deleted the obsolete `feat/performance-optimizations-websockets` branch, removing all remote branch references to the tracked SQLite copies and exposed key.
-- Remaining release work: reconnect both Vercel projects to their monorepo roots and optionally add a free uptime monitor.
+- 2026-07-05: Connected frontend project `my-app` to root `frontend` and backend project `planning-poker-api-ronit` to root `backend/poker_project` on the clean GitHub repository.
+- Remaining optional work: add a free external uptime monitor if desired.

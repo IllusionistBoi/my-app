@@ -454,7 +454,7 @@ After the replacement push:
 - Hobby limits include finite monthly CPU, memory, requests, bandwidth, builds, and log retention. Exceeding many Hobby limits pauses the affected feature until reset rather than charging a Hobby billing cycle.
 - Neon Free currently includes 100 CU-hours and 0.5 GB storage per project with a six-hour restore window.
 - Preview deployments are intentionally public so the frontend can call the preview API without paid Deployment Protection exceptions.
-- The initial recovery deployment came from the audited local tree; Git-backed deployment becomes canonical after the clean history push.
+- Git-backed deployments from the clean `master` history are canonical. Do not use older dirty CLI artifacts as rollback candidates.
 - A purchased custom domain is optional and not free. The fixed `*.vercel.app` production alias is the supported $0 domain.
 - External uptime monitoring is optional. Do not enable paid Vercel monitoring, custom-domain registration, or database upgrades without explicit approval.
 
