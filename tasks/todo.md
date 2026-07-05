@@ -330,6 +330,13 @@ Severity:
 - [x] Update all documentation to describe the free Vercel + Neon architecture, stable domain, quotas, and recovery steps.
 - [x] Add a free six-hour GitHub Actions uptime/readiness check; do not enable a paid custom domain, monitoring add-on, database plan, or Vercel plan.
 
+### Phase 7 — final platform verification
+
+- [x] Upgrade GitHub Actions to Node 24-compatible major versions and validate the workflow YAML.
+- [ ] Push the final commit and confirm every CI job passes without deprecated-runtime warnings.
+- [ ] Confirm both Vercel projects deploy the final Git commit to their fixed production aliases.
+- [ ] Re-run fixed-domain readiness checks and leave the repository clean.
+
 ## Definition of done
 
 - No P0 findings remain in code or deployment configuration.
