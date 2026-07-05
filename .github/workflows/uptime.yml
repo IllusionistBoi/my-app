@@ -35,7 +35,7 @@ jobs:
               "$1"
           }
 
-          fetch "https://my-app-tau-seven-25.vercel.app/" | grep -q "Planning Poker"
-          fetch "https://my-app-tau-seven-25.vercel.app/api/ready/" | grep -q '"status": "ready"'
+          fetch "https://planning-poker-ronit.vercel.app/" | grep -q "Planning Poker"
+          fetch "https://planning-poker-ronit.vercel.app/api/ready/" | grep -q '"status": "ready"'
           fetch "https://planning-poker-preview-ronit.vercel.app/" | grep -q "Planning Poker"
           fetch "https://planning-poker-api-preview-ronit.vercel.app/api/ready/" | grep -q '"status": "ready"'

@@ -8,12 +8,13 @@ Planning Poker is a short-lived, account-free estimation room. Participants choo
 
 Fixed addresses:
 
-- Production frontend: <https://my-app-tau-seven-25.vercel.app>
+- Production frontend: <https://planning-poker-ronit.vercel.app>
+- Compatibility frontend alias: <https://my-app-tau-seven-25.vercel.app>
 - Preview frontend: <https://planning-poker-preview-ronit.vercel.app>
 - Production API: <https://planning-poker-api-ronit.vercel.app>
 - Preview API: <https://planning-poker-api-preview-ronit.vercel.app>
 
-The generated Vercel deployment URLs are immutable diagnostics. The fixed production alias above is the public URL and remains unchanged between deployments.
+The generated Vercel deployment URLs are immutable diagnostics. The fixed production alias above is the public URL and remains unchanged between deployments. The API is intentionally deployed as a separate Vercel project; its root identifies the service and links back to the browser application.
 
 ## Architecture
 
@@ -38,7 +39,7 @@ The redesign replaced the generic light interface with a warm-black, orange-led 
 - Display typography: locally hosted Clash Display 600/700.
 - Interface typography: locally hosted Geist variable and Geist Mono.
 - Surfaces: warm charcoal with restrained inner highlights and brown-tinted physical shadows.
-- Composition: asymmetric split hero, offset create/join forms, line-separated explanation and a deliberately sparse footer.
+- Composition: asymmetric split hero, aligned create/join forms, line-separated explanation and a deliberately sparse footer.
 - Brand voice: concise, quirky and clear. Humour never replaces the actionable part of an error.
 
 All fonts are self-hosted from Ronit’s portfolio repository. There are no font-CDN requests and no paid assets.
@@ -52,7 +53,7 @@ The original teddy was recovered from pre-cleanup Git object `57cf108430f4f90017
 - State machine: `Login Machine`
 - Inputs used: `isChecking`, `isHandsUp`, `numLook`, `trigSuccess`, `trigFail`
 
-`TeddyMascot.jsx` isolates the Rive runtime. The teddy follows name length, covers its eyes while room details are entered, and responds to success/failure signals. It pauses for `prefers-reduced-motion` and falls back to a small CSS teddy if the Rive file cannot load.
+`TeddyMascot.jsx` isolates the Rive runtime. The teddy follows horizontal mouse movement, follows typed name length, covers its eyes while room details are entered, and responds to success/failure signals. Pointer updates bypass React rendering. It pauses for `prefers-reduced-motion` and falls back to a small CSS teddy if the Rive file cannot load.
 
 The canvas-lite runtime was chosen because this legacy vector file does not use Rive Text or other advanced renderer-only features. The `.riv` file is approximately 35 KB.
 
@@ -66,7 +67,7 @@ The matching 2.38.4 WASM runtime is pinned to `unpkg.com` with an exact-version 
 - Vote cards deal in with a short 45 ms stagger.
 - Live status breathes subtly.
 - The ticker uses constant linear motion because it is purely decorative.
-- Reveal is the rare celebratory moment: cards burst outward and a “Cards up” placard appears once.
+- Reveal is the rare celebratory moment: small cards burst across the top edge without obscuring results or commentary.
 - Dynamic states use transitions where interruption matters.
 - `prefers-reduced-motion` removes perpetual movement, transform choreography and reveal particles while preserving readable state changes.
 
@@ -85,6 +86,19 @@ The matching 2.38.4 WASM runtime is pinned to `unpkg.com` with an exact-version 
 - `SiteFooter.jsx` — portfolio/source links and project signature.
 - `uiCopy.js` — shared friendly error mapping.
 - `riveRuntimeStub.js` — deterministic unit-test substitute for the browser animation runtime.
+
+### Screenshot-led correction
+
+The 6 July 2026 correction was driven by full-page home, room, ready, focused and revealed screenshots:
+
+- Reduced negative tracking and display sizes; added explicit word spacing to multi-word display text.
+- Switched operational headings to Geist with lighter weights.
+- Aligned the create and join panels, fields and actions to one grid.
+- Rebuilt the ticker from two identical groups so the loop has no empty interval.
+- Removed Rive provenance from the product surface; provenance remains in this document.
+- Removed the reveal placard and kept a short, non-obscuring particle flourish.
+- Moved connection status beside round metadata and contained participant actions inside each row.
+- Reduced section/footer whitespace and made the skip link appear immediately for keyboard focus.
 
 ### Development and performance
 
@@ -114,5 +128,13 @@ Remote release completed on 5 July 2026:
 - The production CSP permits `'wasm-unsafe-eval'` but not general `'unsafe-eval'`.
 - Runtime-error scans were empty for both Vercel projects.
 - The manually triggered free uptime workflow passed for the release SHA.
+
+Local screenshot-correction verification completed on 6 July 2026:
+
+- Node 24 unit tests: 13/13 passed, including teddy pointer tracking, both stable production aliases and the Rive CSP.
+- Production build: 618,206 bytes total; largest JavaScript chunk 237,189 bytes.
+- Playwright: 4/4 passed against the isolated preview backend, including two contexts, reveal/reset/cleanup, 320 px overflow, aligned desktop entry panels, seamless ticker and reduced motion.
+- Backend: 24 tests passed with one expected PostgreSQL-only local skip; migration drift and Django deployment checks passed.
+- Manual browser review: desktop and 320 px home, aligned forms, populated room, selected vote, ready room, non-obscuring reveal and compact footer inspected.
 
 Detailed security, backend, deployment, recovery and free-plan operations remain canonical in `CLAUDE.md`. The full audit and implementation chronology live in `tasks/todo.md`.

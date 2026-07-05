@@ -6,12 +6,13 @@ The experience uses the project’s original interactive Rive teddy, a portfolio
 
 ## Live application
 
-- Production: <https://my-app-tau-seven-25.vercel.app>
+- Production: <https://planning-poker-ronit.vercel.app>
+- Compatibility alias: <https://my-app-tau-seven-25.vercel.app>
 - Preview: <https://planning-poker-preview-ronit.vercel.app>
-- Production API: <https://planning-poker-api-ronit.vercel.app/api/health/>
+- Production API: <https://planning-poker-api-ronit.vercel.app>
 - Preview API: <https://planning-poker-api-preview-ronit.vercel.app/api/health/>
 
-The production addresses are stable Vercel aliases. New deployments receive unique diagnostic URLs, but promoting a deployment moves the fixed alias instead of changing the public address.
+The production addresses are stable Vercel aliases. New deployments receive unique diagnostic URLs, but promoting a deployment moves the fixed alias instead of changing the public address. The API is a separate Django backend used by the browser application; its root returns a small service-status response rather than the React interface.
 
 ## Free-only architecture
 
@@ -98,7 +99,7 @@ CI also runs PostgreSQL concurrency tests, Django deployment checks, Python depe
 ## Design and animation
 
 - `frontend/src/assets/poker-teddy.riv` is the original authored teddy recovered from the first version of the project.
-- `TeddyMascot.jsx` drives its `Login Machine` state machine from form focus, typed names, and success/error signals.
+- `TeddyMascot.jsx` drives its `Login Machine` state machine from mouse position, form focus, typed names, and success/error signals.
 - Clash Display, Geist, and Geist Mono are self-hosted from Ronit’s portfolio assets.
 - Reveal celebration, card dealing, tactile controls, mobile layouts, and reduced-motion behavior live in `styles.css`.
 - Rive and page routes remain code-split. The build enforces a 300 KB largest-JavaScript limit and a 700 KB total-asset limit.
@@ -109,9 +110,11 @@ See `PROJECT.md` for the full design decision and verification record.
 
 | Layer | Vercel project | Root | Fixed production address |
 | --- | --- | --- | --- |
-| Frontend | `my-app` | `frontend` | `my-app-tau-seven-25.vercel.app` |
+| Frontend | `my-app` | `frontend` | `planning-poker-ronit.vercel.app` |
 | Backend | `planning-poker-api-ronit` | `backend/poker_project` | `planning-poker-api-ronit.vercel.app` |
 
 Production frontend traffic uses same-origin `/api` rewrites. Preview uses `VITE_API_URL` to reach the fixed preview API and its separate Neon database.
+
+`my-app-tau-seven-25.vercel.app` remains attached as a free compatibility alias. The two Vercel projects are intentional: one serves the React website, while `planning-poker-api-ronit` runs the Django API and connects to PostgreSQL.
 
 See `CLAUDE.md` before changing environment variables, databases, aliases, or deployment protection.

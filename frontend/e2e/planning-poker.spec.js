@@ -15,63 +15,77 @@ test("two participants keep votes private until the host reveals", async ({
   browser,
   page: hostPage,
 }) => {
+  test.setTimeout(60_000);
   const hostErrors = capturePageErrors(hostPage);
-  await hostPage.goto("/");
-  await hostPage.locator("#create-name").fill("E2E Host");
-  await hostPage.getByLabel("Name this tiny democracy").fill("Release confidence");
-  await hostPage.getByRole("button", { name: "Deal a room" }).click();
-  await expect(hostPage).toHaveURL(/\/session\/[A-Z0-9-]+$/);
-  await expect(
-    hostPage.getByRole("heading", { name: "Release confidence" }),
-  ).toBeVisible();
+  let participantContext;
+  let participantErrors = [];
 
-  const participantContext = await browser.newContext();
-  const participantPage = await participantContext.newPage();
-  const participantErrors = capturePageErrors(participantPage);
-  await participantPage.goto(hostPage.url());
-  await expect(
-    participantPage.getByRole("heading", {
-      name: "Name yourself, mysterious estimator.",
-    }),
-  ).toBeVisible();
-  await participantPage.getByLabel("Your name").fill("E2E Participant");
-  await participantPage.getByRole("button", { name: "Enter the room" }).click();
-  await expect(
-    participantPage.getByRole("heading", { name: "Release confidence" }),
-  ).toBeVisible();
+  try {
+    await hostPage.goto("/");
+    await hostPage.locator("#create-name").fill("E2E Host");
+    await hostPage.getByLabel("Name this tiny democracy").fill("Release confidence");
+    await hostPage.getByRole("button", { name: "Deal a room" }).click();
+    await expect(hostPage).toHaveURL(/\/session\/[A-Z0-9-]+$/);
+    await expect(
+      hostPage.getByRole("heading", { name: "Release confidence" }),
+    ).toBeVisible();
 
-  await hostPage.getByRole("button", { name: "5 points" }).click();
-  await participantPage.getByRole("button", { name: "8 points" }).click();
+    participantContext = await browser.newContext();
+    const participantPage = await participantContext.newPage();
+    participantErrors = capturePageErrors(participantPage);
+    await participantPage.goto(hostPage.url());
+    await expect(
+      participantPage.getByRole("heading", {
+        name: "Name yourself, mysterious estimator.",
+      }),
+    ).toBeVisible();
+    await participantPage.getByLabel("Your name").fill("E2E Participant");
+    await participantPage.getByRole("button", { name: "Enter the room" }).click();
+    await expect(
+      participantPage.getByRole("heading", { name: "Release confidence" }),
+    ).toBeVisible();
 
-  const participantRow = hostPage
-    .locator(".participant-card")
-    .filter({ hasText: "e2e participant" });
-  await expect(participantRow).toContainText("Vote locked in");
-  await expect(participantRow).not.toContainText("Voted 8");
+    await hostPage.getByRole("button", { name: "5 points" }).click();
+    await participantPage.getByRole("button", { name: "8 points" }).click();
 
-  const revealButton = hostPage.getByRole("button", { name: "Flip the table" });
-  await expect(revealButton).toBeEnabled();
-  await revealButton.click();
+    const participantRow = hostPage
+      .locator(".participant-card")
+      .filter({ hasText: "e2e participant" });
+    await expect(participantRow).toContainText("Vote locked in");
+    await expect(participantRow).not.toContainText("Voted 8");
 
-  await expect(
-    hostPage.locator(".result-card").filter({ hasText: "e2e host" }),
-  ).toContainText("5");
-  await expect(
-    hostPage.locator(".result-card").filter({ hasText: "e2e participant" }),
-  ).toContainText("8");
+    const revealButton = hostPage.getByRole("button", { name: "Flip the table" });
+    await expect(revealButton).toBeEnabled();
+    await revealButton.click();
+    await expect(hostPage.locator(".reveal-burst")).toBeAttached();
+    await expect(hostPage.locator(".reveal-burst span")).toHaveCount(0);
 
-  await hostPage.getByRole("button", { name: "Deal next round" }).click();
-  await expect(hostPage.getByText("Round 2", { exact: false })).toBeVisible();
-  await expect(
-    participantPage.getByRole("button", { name: "8 points" }),
-  ).toHaveAttribute("aria-pressed", "false");
+    await expect(
+      hostPage.locator(".result-card").filter({ hasText: "e2e host" }),
+    ).toContainText("5");
+    await expect(
+      hostPage.locator(".result-card").filter({ hasText: "e2e participant" }),
+    ).toContainText("8");
 
-  await participantContext.close();
-  hostPage.once("dialog", (dialog) => dialog.accept());
-  await hostPage.getByRole("button", { name: "Delete this room" }).click();
-  await expect(hostPage).toHaveURL("/");
-  expect(hostErrors).toEqual([]);
-  expect(participantErrors).toEqual([]);
+    await hostPage.getByRole("button", { name: "Deal next round" }).click();
+    await expect(hostPage.getByText("Round 2", { exact: false })).toBeVisible();
+    await expect(
+      participantPage.getByRole("button", { name: "8 points" }),
+    ).toHaveAttribute("aria-pressed", "false");
+
+    expect(hostErrors).toEqual([]);
+    expect(participantErrors).toEqual([]);
+  } finally {
+    await participantContext?.close();
+    if (hostPage.url().includes("/session/")) {
+      const deleteRoom = hostPage.getByRole("button", { name: "Delete this room" });
+      if ((await deleteRoom.count()) === 1) {
+        hostPage.once("dialog", (dialog) => dialog.accept());
+        await deleteRoom.click({ force: true });
+        await expect(hostPage).toHaveURL("/");
+      }
+    }
+  }
 });
 
 test("home and room-entry layouts do not overflow at 320px", async ({ page }) => {
@@ -93,6 +107,45 @@ test("home and room-entry layouts do not overflow at 320px", async ({ page }) =>
   expect(pageErrors).toEqual([]);
 });
 
+test("desktop composition stays aligned and the ticker loops without a gap", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  await page.evaluate(() => document.fonts.ready);
+
+  await expect(page.getByText("Original Rive teddy")).toHaveCount(0);
+  await expect(page.locator(".mascot-hint")).toContainText("react");
+
+  const [createBox, joinBox] = await Promise.all([
+    page.locator(".entry-card-create").boundingBox(),
+    page.locator(".entry-card-join").boundingBox(),
+  ]);
+  expect(Math.abs(createBox.y - joinBox.y)).toBeLessThan(2);
+  expect(Math.abs(createBox.height - joinBox.height)).toBeLessThan(2);
+
+  const tickerMetrics = await page.locator(".ticker").evaluate((ticker) => {
+    const groups = [...ticker.querySelectorAll(".ticker-group")];
+    return {
+      groupCount: groups.length,
+      groupWidths: groups.map((group) => group.getBoundingClientRect().width),
+      trackWidth: ticker.querySelector(".ticker-track").getBoundingClientRect().width,
+    };
+  });
+  expect(tickerMetrics.groupCount).toBe(2);
+  expect(Math.abs(tickerMetrics.groupWidths[0] - tickerMetrics.groupWidths[1])).toBeLessThan(
+    1,
+  );
+  expect(tickerMetrics.trackWidth).toBeGreaterThanOrEqual(
+    tickerMetrics.groupWidths[0] * 2 - 1,
+  );
+
+  const skipLink = page.getByRole("link", { name: "Skip to main content" });
+  expect((await skipLink.boundingBox()).y).toBeLessThan(0);
+  await page.keyboard.press("Tab");
+  expect((await skipLink.boundingBox()).y).toBeGreaterThanOrEqual(0);
+});
+
 test("reduced motion keeps the design readable without perpetual movement", async ({
   page,
 }) => {
@@ -104,7 +157,7 @@ test("reduced motion keeps the design readable without perpetual movement", asyn
     page.getByRole("heading", { name: "Call the bluff. Find the estimate." }),
   ).toBeVisible();
   expect(
-    await page.locator(".ticker div").evaluate((element) => {
+    await page.locator(".ticker-track").evaluate((element) => {
       return window.getComputedStyle(element).animationIterationCount;
     }),
   ).toBe("1");

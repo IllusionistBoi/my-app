@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ApiError, request, sessionsApi } from "../api.js";
+import {
+  ApiError,
+  isProductionHostname,
+  request,
+  sessionsApi,
+} from "../api.js";
 
 function jsonResponse(payload, { status = 200, requestId = "request-123" } = {}) {
   return new Response(JSON.stringify(payload), {
@@ -39,6 +44,12 @@ describe("API client", () => {
         }),
       }),
     );
+  });
+
+  it("recognizes both stable production aliases", () => {
+    expect(isProductionHostname("planning-poker-ronit.vercel.app")).toBe(true);
+    expect(isProductionHostname("my-app-tau-seven-25.vercel.app")).toBe(true);
+    expect(isProductionHostname("planning-poker-preview-ronit.vercel.app")).toBe(false);
   });
 
   it("surfaces the server error code and request ID", async () => {

@@ -48,12 +48,15 @@ The complete route inventory and authorization rules are documented in `CLAUDE.m
 
 ## Deployment state
 
-- Frontend production: `https://my-app-tau-seven-25.vercel.app`
+- Frontend production: `https://planning-poker-ronit.vercel.app`
+- Frontend compatibility alias: `https://my-app-tau-seven-25.vercel.app`
 - Backend production: `https://planning-poker-api-ronit.vercel.app`
 - Frontend preview: `https://planning-poker-preview-ronit.vercel.app`
 - Backend preview: `https://planning-poker-api-preview-ronit.vercel.app`
 
 All four are fixed free `vercel.app` aliases. Production and preview databases are separate Neon Free resources in London.
+
+The API project is the Django service used by the React frontend. Its root returns service status; the browser UI lives at the frontend address.
 
 ## Canonical reference
 

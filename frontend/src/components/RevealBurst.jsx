@@ -1,4 +1,4 @@
-const PARTICLES = Array.from({ length: 14 }, (_, index) => index);
+const PARTICLES = Array.from({ length: 10 }, (_, index) => index);
 
 export default function RevealBurst({ burstKey }) {
   if (!burstKey) {
@@ -10,7 +10,6 @@ export default function RevealBurst({ burstKey }) {
       {PARTICLES.map((index) => (
         <i key={index} style={{ "--particle": index }} />
       ))}
-      <span>Cards up</span>
     </div>
   );
 }

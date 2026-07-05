@@ -21,7 +21,8 @@ Correctness and privacy are more important than preserving legacy API behavior.
 ## 2. Current operational status
 
 - Frontend Vercel project: `my-app`
-- Frontend production: `https://my-app-tau-seven-25.vercel.app`
+- Frontend production: `https://planning-poker-ronit.vercel.app`
+- Frontend compatibility alias: `https://my-app-tau-seven-25.vercel.app`
 - Frontend preview: `https://planning-poker-preview-ronit.vercel.app`
 - Backend Vercel project: `planning-poker-api-ronit`
 - Backend production: `https://planning-poker-api-ronit.vercel.app`
@@ -34,6 +35,8 @@ Correctness and privacy are more important than preserving legacy API behavior.
 - Default branch: `master`
 
 Production and preview are live and use separate databases. The frontend's fixed production alias does not change between deployments. Unique generated deployment URLs are diagnostics/previews, not the public application address.
+
+The backend project is intentional. It runs Django and PostgreSQL-backed room state while the frontend project serves React. Opening the backend root returns a service-status payload and the frontend address; it is not a second copy of the website.
 
 The former Render/SQLite deployment is retired and must not be used as a rollback target. A fresh Django signing key was generated for each Vercel environment; old capabilities are invalid.
 
@@ -113,6 +116,7 @@ Do not rely on a developer machine's global Node or Python version. Clean instal
 | `DATABASE_URL` | Production/preview/CI | Pooled PostgreSQL connection string. Vercel injects it from the environment-scoped Neon integration. |
 | `DJANGO_ALLOWED_HOSTS` | Deployed environments | Comma-separated hostnames. Current Vercel value is `.vercel.app`. |
 | `CORS_ALLOWED_ORIGINS` | If cross-origin browser access is enabled | Comma-separated origins including scheme. Same-origin proxying should minimize this list. |
+| `PUBLIC_APP_URL` | Backend | Public browser application linked from the API landing response. Defaults to the fixed free production alias. |
 | `CSRF_TRUSTED_ORIGINS` | Cookie/session admin flows | Comma-separated HTTPS origins trusted for CSRF. |
 | `DB_SSL_REQUIRED` | Optional | Defaults to `true` outside debug/tests; disable only for an explicitly local database. |
 | `DB_CONN_MAX_AGE` | Optional | Persistent database connection lifetime; default `60` seconds. |
@@ -320,6 +324,7 @@ On PostgreSQL, wrap JSON or row-based state transitions in `transaction.atomic()
 
 Recommended split:
 
+- `/` — public service landing response identifying the API and linking to `PUBLIC_APP_URL`.
 - `/api/health/` — liveness and release identifier, no expensive dependencies.
 - `/api/ready/` — database readiness using a bounded `SELECT 1`.
 - `/api/version/` — deployed commit and environment metadata.
@@ -463,7 +468,7 @@ After the replacement push:
 - Neon Free currently includes 100 CU-hours and 0.5 GB storage per project with a six-hour restore window.
 - Preview deployments are intentionally public so the frontend can call the preview API without paid Deployment Protection exceptions.
 - Git-backed deployments from the clean `master` history are canonical. Do not use older dirty CLI artifacts as rollback candidates.
-- A purchased custom domain is optional and not free. The fixed `*.vercel.app` production alias is the supported $0 domain.
+- A purchased custom domain is optional and not free. `planning-poker-ronit.vercel.app` is the primary supported $0 domain; `my-app-tau-seven-25.vercel.app` remains a compatibility alias.
 - The free GitHub Actions uptime workflow provides basic availability checks, not an SLA or full error-monitoring service. Do not enable paid Vercel monitoring, custom-domain registration, or database upgrades without explicit approval.
 
 ## 24. Documentation maintenance

@@ -14,6 +14,14 @@ import {
 } from "../sessionStore.js";
 import { friendlyError } from "../uiCopy.js";
 
+const TICKER_ITEMS = [
+  "Pick quietly",
+  "Reveal together",
+  "Debate the gap",
+  "Repeat until aligned",
+];
+const TICKER_GROUPS = [0, 1];
+
 function FormField({ id, label, hint, onFocus, ...inputProps }) {
   const hintId = hint ? `${id}-hint` : undefined;
   return (
@@ -57,7 +65,7 @@ export default function HomePage() {
       ? "I am not peeking. Scout’s honour."
       : mascotText
         ? `Hello, ${mascotText.trim().split(/\s+/)[0] || "mystery planner"}.`
-        : "I watch the room. Not your vote.";
+        : "Move your cursor. I will keep an eye on it.";
 
   function signalMascot(type) {
     setMascotSignal({ type, id: window.crypto.randomUUID() });
@@ -162,26 +170,22 @@ export default function HomePage() {
                 signal={mascotSignal}
               />
             </div>
-            <p className="mascot-caption">
-              <span>Original Rive teddy</span>
-              Recovered from the first version of this app.
-            </p>
+            <p className="mascot-hint">Move. Type. Watch me react.</p>
           </aside>
         </section>
 
         <div className="ticker" aria-hidden="true">
-          <div>
-            <span>Pick quietly</span>
-            <i />
-            <span>Reveal loudly</span>
-            <i />
-            <span>Debate the gap</span>
-            <i />
-            <span>Repeat until suspiciously aligned</span>
-            <i />
-            <span>Pick quietly</span>
-            <i />
-            <span>Reveal loudly</span>
+          <div className="ticker-track">
+            {TICKER_GROUPS.map((group) => (
+              <div className="ticker-group" key={group}>
+                {TICKER_ITEMS.map((item) => (
+                  <span className="ticker-item" key={`${group}-${item}`}>
+                    {item}
+                    <i />
+                  </span>
+                ))}
+              </div>
+            ))}
           </div>
         </div>
 

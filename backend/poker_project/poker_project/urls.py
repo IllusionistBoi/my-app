@@ -5,6 +5,7 @@ from . import views
 
 
 urlpatterns = [
+    path("", views.landing, name="landing"),
     path("admin/", admin.site.urls),
     path("api/health/", views.health, name="health"),
     path("api/ready/", views.readiness, name="readiness"),

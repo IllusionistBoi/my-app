@@ -197,6 +197,10 @@ DEPLOYMENT_COMMIT = (
     or "unknown"
 )
 DEPLOYMENT_ENVIRONMENT = os.environ.get("DEPLOYMENT_ENVIRONMENT", "development" if DEBUG else "production")
+PUBLIC_APP_URL = os.environ.get(
+    "PUBLIC_APP_URL",
+    "https://planning-poker-ronit.vercel.app",
+)
 
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO").upper()
 LOGGING = {

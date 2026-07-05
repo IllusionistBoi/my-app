@@ -159,40 +159,42 @@ function ParticipantCard({ username, voteState, session, onRemove, busy }) {
                 : "Choosing a card"}
         </span>
       </div>
-      <span
-        className={`vote-indicator${voteState?.has_voted ? " vote-indicator-ready" : ""}`}
-        aria-label={
-          isSpectator
-            ? "Spectator"
-            : voteState?.has_voted
-              ? session.is_revealed
-                ? `Vote ${voteState.vote}`
-                : "Vote submitted"
-              : "Waiting for vote"
-        }
-      >
-        {isSpectator ? (
-          <Eye aria-hidden="true" size={17} weight="bold" />
-        ) : session.is_revealed ? (
-          (voteState?.vote ?? "—")
-        ) : voteState?.has_voted ? (
-          <Check aria-hidden="true" size={18} weight="bold" />
-        ) : (
-          <Hourglass aria-hidden="true" size={17} weight="bold" />
-        )}
-      </span>
-      {session.current_user.is_creator && !isCreator ? (
-        <button
-          className="icon-button"
-          disabled={busy}
-          onClick={() => onRemove(username)}
-          title={`Remove ${username}`}
-          type="button"
+      <div className="participant-row-actions">
+        <span
+          className={`vote-indicator${voteState?.has_voted ? " vote-indicator-ready" : ""}`}
+          aria-label={
+            isSpectator
+              ? "Spectator"
+              : voteState?.has_voted
+                ? session.is_revealed
+                  ? `Vote ${voteState.vote}`
+                  : "Vote submitted"
+                : "Waiting for vote"
+          }
         >
-          <UserMinus aria-hidden="true" size={18} weight="bold" />
-          <span className="sr-only">Remove {username}</span>
-        </button>
-      ) : null}
+          {isSpectator ? (
+            <Eye aria-hidden="true" size={17} weight="bold" />
+          ) : session.is_revealed ? (
+            (voteState?.vote ?? "—")
+          ) : voteState?.has_voted ? (
+            <Check aria-hidden="true" size={18} weight="bold" />
+          ) : (
+            <Hourglass aria-hidden="true" size={17} weight="bold" />
+          )}
+        </span>
+        {session.current_user.is_creator && !isCreator ? (
+          <button
+            className="icon-button"
+            disabled={busy}
+            onClick={() => onRemove(username)}
+            title={`Remove ${username}`}
+            type="button"
+          >
+            <UserMinus aria-hidden="true" size={18} weight="bold" />
+            <span className="sr-only">Remove {username}</span>
+          </button>
+        ) : null}
+      </div>
     </li>
   );
 }
@@ -535,18 +537,21 @@ export default function RoomPage() {
       <main className="room-main" id="main-content">
         <section className="room-title-row" aria-labelledby="room-title">
           <div>
-            <p className="eyebrow">
-              Round {session.round_number} <span aria-hidden="true">/</span> {session.session_id}
-            </p>
+            <div className="room-meta">
+              <p className="eyebrow">
+                Round {session.round_number} <span aria-hidden="true">/</span>{" "}
+                {session.session_id}
+              </p>
+              <div className={`connection-pill${isOnline ? "" : " connection-offline"}`}>
+                <span aria-hidden="true" />
+                {isOnline ? "Live" : "Offline"}
+              </div>
+            </div>
             <h1 id="room-title">{session.name}</h1>
             <p>
               {session.created_by} is holding the gavel. This table vanishes{" "}
               {formatExpiry(session.expires_at)}.
             </p>
-          </div>
-          <div className={`connection-pill${isOnline ? "" : " connection-offline"}`}>
-            <span aria-hidden="true" />
-            {isOnline ? "Live" : "Offline"}
           </div>
         </section>
 

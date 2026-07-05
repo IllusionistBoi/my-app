@@ -1,6 +1,13 @@
 const DEFAULT_API_BASE = "/api";
 const DEFAULT_TIMEOUT_MS = 10_000;
-const PRODUCTION_HOST = "my-app-tau-seven-25.vercel.app";
+const PRODUCTION_HOSTS = new Set([
+  "my-app-tau-seven-25.vercel.app",
+  "planning-poker-ronit.vercel.app",
+]);
+
+export function isProductionHostname(hostname) {
+  return PRODUCTION_HOSTS.has(hostname);
+}
 
 function configuredApiBase() {
   return (import.meta.env.VITE_API_URL || DEFAULT_API_BASE).replace(/\/+$/, "");
@@ -11,7 +18,7 @@ function assertSafePreviewTarget(apiBase) {
     apiBase === DEFAULT_API_BASE &&
     typeof window !== "undefined" &&
     window.location.hostname.endsWith(".vercel.app") &&
-    window.location.hostname !== PRODUCTION_HOST
+    !isProductionHostname(window.location.hostname)
   ) {
     throw new ApiError(
       "This preview is intentionally disconnected from production data. Configure VITE_API_URL with an isolated staging backend.",

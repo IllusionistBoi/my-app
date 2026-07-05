@@ -7,7 +7,8 @@ export default function SiteFooter() {
         <div>
           <p className="footer-kicker">Built by Ronit Dahiya</p>
           <p className="footer-statement">
-            Better estimates. Fewer meetings that should have been a message.
+            <span>Better estimates.</span>
+            <span>Fewer meetings that should have been a message.</span>
           </p>
         </div>
         <nav className="footer-links" aria-label="Project links">

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RuntimeLoader } from "@rive-app/canvas-lite";
 import {
   Alignment,
@@ -26,6 +26,8 @@ export default function TeddyMascot({
   signal = null,
 }) {
   const [failed, setFailed] = useState(false);
+  const pointerBoundsRef = useRef(null);
+  const prefersReducedMotionRef = useRef(false);
   const layout = useMemo(
     () =>
       new Layout({
@@ -47,14 +49,18 @@ export default function TeddyMascot({
   const successTrigger = useStateMachineInput(rive, STATE_MACHINE, "trigSuccess");
   const failTrigger = useStateMachineInput(rive, STATE_MACHINE, "trigFail");
 
-  useEffect(() => {
+  const syncTextLook = useCallback(() => {
     if (isChecking) {
       isChecking.value = lookText.trim().length > 0;
     }
     if (lookPosition) {
-      lookPosition.value = Math.min(lookText.length * 4.4, 100);
+      lookPosition.value = Math.min(lookText.length * 4.4, 62);
     }
   }, [isChecking, lookPosition, lookText]);
+
+  useEffect(() => {
+    syncTextLook();
+  }, [syncTextLook]);
 
   useEffect(() => {
     if (isHandsUp) {
@@ -80,6 +86,7 @@ export default function TeddyMascot({
     }
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
     const syncPlayback = () => {
+      prefersReducedMotionRef.current = media.matches;
       if (media.matches) {
         rive.pause();
       } else {
@@ -90,6 +97,38 @@ export default function TeddyMascot({
     media.addEventListener?.("change", syncPlayback);
     return () => media.removeEventListener?.("change", syncPlayback);
   }, [rive]);
+
+  const rememberPointerBounds = useCallback((event) => {
+    pointerBoundsRef.current = event.currentTarget.getBoundingClientRect();
+  }, []);
+
+  const followPointer = useCallback(
+    (event) => {
+      if (
+        prefersReducedMotionRef.current ||
+        event.pointerType === "touch" ||
+        !lookPosition
+      ) {
+        return;
+      }
+      const bounds =
+        pointerBoundsRef.current || event.currentTarget.getBoundingClientRect();
+      const progress = Math.max(
+        0,
+        Math.min(1, (event.clientX - bounds.left) / Math.max(bounds.width, 1)),
+      );
+      if (isChecking) {
+        isChecking.value = true;
+      }
+      lookPosition.value = 8 + progress * 54;
+    },
+    [isChecking, lookPosition],
+  );
+
+  const stopFollowingPointer = useCallback(() => {
+    pointerBoundsRef.current = null;
+    syncTextLook();
+  }, [syncTextLook]);
 
   if (failed) {
     return (
@@ -105,5 +144,14 @@ export default function TeddyMascot({
     );
   }
 
-  return <RiveComponent className="teddy-canvas" aria-hidden="true" />;
+  return (
+    <div
+      className="teddy-interaction"
+      onPointerEnter={rememberPointerBounds}
+      onPointerLeave={stopFollowingPointer}
+      onPointerMove={followPointer}
+    >
+      <RiveComponent className="teddy-canvas" aria-hidden="true" />
+    </div>
+  );
 }

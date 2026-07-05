@@ -472,10 +472,15 @@ class SessionAPITests(APITestCase):
         self.assertTrue(response.data["error"]["request_id"])
 
     def test_health_readiness_and_version_are_public(self):
-        for path in ("/api/health/", "/api/ready/", "/api/version/"):
+        for path in ("/", "/api/health/", "/api/ready/", "/api/version/"):
             response = self.client.get(path)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertIn("X-Request-ID", response)
+
+        landing = self.client.get("/")
+        self.assertEqual(landing.json()["service"], "planning-poker-api")
+        self.assertEqual(landing.json()["status"], "ready")
+        self.assertIn("application", landing.json())
 
     def test_create_is_rate_limited(self):
         cache.clear()

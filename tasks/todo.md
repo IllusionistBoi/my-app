@@ -356,6 +356,25 @@ Severity:
 - [x] Commit and push the CSP correction, then wait for GitHub CI and both Vercel projects to deploy the same SHA.
 - [x] Re-run the complete live Playwright suite, readiness/version probes, visual inspection, uptime workflow, and runtime-error scans.
 
+### Phase 9 — screenshot-led visual correction and deployment clarity
+
+- [x] Audit the supplied full-page home, room, focused, ready, and reveal screenshots against computed styles and component structure.
+- [x] Relax display typography and weights so every multi-word heading, action, participant row, and footer line has clear separation and hierarchy.
+- [x] Remove customer-facing implementation provenance, reduce dead vertical space, align both room-entry panels, and make the marquee mathematically seamless.
+- [x] Reposition or simplify the reveal celebration so it never obscures commentary, vote cards, controls, or participants.
+- [x] Move room status into the content hierarchy, refine participant actions, and ensure the skip link appears only for true keyboard focus.
+- [x] Add reduced-motion-safe pointer tracking to the teddy and make all existing form/success/failure reactions explicit and testable.
+- [ ] Add a clear zero-cost frontend `.vercel.app` alias; keep the current alias as a compatibility fallback.
+- [x] Make the backend project root explain that it is the private application API instead of returning a confusing 404.
+- [x] Update tests and documentation, then run complete local visual, responsive, interaction, accessibility, backend, and build verification.
+- [ ] Commit, push, verify CI and both Vercel deployments, run live E2E/visual checks, and confirm the final fixed aliases and runtime logs.
+
+Phase 9 verification notes:
+
+- 2026-07-06: Frontend verification passed 13/13 unit tests and the production build/size budget. The first backend check stopped before tests because the shell inherited production debug settings without a key; re-planned all backend commands with explicit environments.
+- 2026-07-06: Backend verification passed 24 tests with one expected SQLite concurrency skip, no migration drift and clean deployment checks. The expanded Playwright suite initially exposed a keyboard-focus timing assertion and insufficient total cleanup time; removing keyboard-triggered motion and adding guaranteed cleanup produced a clean 4/4 run.
+- 2026-07-06: Final source verification passed again under pinned Node 24: 13/13 frontend tests, a 618,206-byte production build under both size budgets, clean diff checks, and 4/4 full-stack browser flows with guaranteed room cleanup.
+
 ## Definition of done
 
 - No P0 findings remain in code or deployment configuration.
