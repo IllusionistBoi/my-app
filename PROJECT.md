@@ -56,7 +56,7 @@ The original teddy was recovered from pre-cleanup Git object `57cf108430f4f90017
 
 The canvas-lite runtime was chosen because this legacy vector file does not use Rive Text or other advanced renderer-only features. The `.riv` file is approximately 35 KB.
 
-The matching 2.38.4 WASM runtime is pinned to `unpkg.com` with an exact-version `cdn.jsdelivr.net` fallback. Both hosts are explicitly scoped in `connect-src`; scripts still load only from the application itself. This avoids adding roughly 819 KB to the Vercel build while retaining a deterministic runtime version.
+The matching 2.38.4 WASM runtime is pinned to `unpkg.com` with an exact-version `cdn.jsdelivr.net` fallback. Both hosts are explicitly scoped in `connect-src`; JavaScript still loads only from the application itself. The CSP grants the narrow `'wasm-unsafe-eval'` capability required to compile the downloaded WebAssembly without permitting general `'unsafe-eval'`. This avoids adding roughly 819 KB to the Vercel build while retaining a deterministic runtime version.
 
 ### Motion system
 
@@ -97,7 +97,7 @@ The matching 2.38.4 WASM runtime is pinned to `unpkg.com` with an exact-version 
 
 Local verification completed on 5 July 2026:
 
-- Node 24 unit tests: 10/10 passed.
+- Node 24 unit tests: 11/11 passed, including a regression check for the least-permissive Rive CSP.
 - Production build: 617,287 bytes total; largest JavaScript chunk 237,126 bytes.
 - Dependency audit: zero known npm vulnerabilities.
 - Two-context Playwright: 3/3 passed, including create, join, hidden votes, reveal, reset and test-room cleanup.
