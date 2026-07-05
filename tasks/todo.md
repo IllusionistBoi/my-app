@@ -333,9 +333,9 @@ Severity:
 ### Phase 7 — final platform verification
 
 - [x] Upgrade GitHub Actions to Node 24-compatible major versions and validate the workflow YAML.
-- [ ] Push the final commit and confirm every CI job passes without deprecated-runtime warnings.
-- [ ] Confirm both Vercel projects deploy the final Git commit to their fixed production aliases.
-- [ ] Re-run fixed-domain readiness checks and leave the repository clean.
+- [x] Push the final commit and confirm every CI job passes without deprecated-runtime warnings.
+- [x] Confirm both Vercel projects deploy the final Git commit to their fixed production aliases.
+- [x] Re-run fixed-domain readiness checks and leave the repository clean.
 
 ## Definition of done
 
@@ -372,4 +372,5 @@ _No application behavior changes started before completion of this findings regi
 - 2026-07-05: Replaced the remote `master` history with clean root commit `68f5cca` and deleted the obsolete `feat/performance-optimizations-websockets` branch, removing all remote branch references to the tracked SQLite copies and exposed key.
 - 2026-07-05: Connected frontend project `my-app` to root `frontend` and backend project `planning-poker-api-ronit` to root `backend/poker_project` on the clean GitHub repository.
 - 2026-07-05: Added a free six-hour GitHub Actions check for both fixed frontend aliases and both API readiness paths. No third-party monitoring account or paid Vercel feature is used.
+- 2026-07-05: Upgraded GitHub Actions to Node 24-compatible majors. Final CI passed all five jobs without deprecated-runtime warnings; both Git-backed Vercel deployments reached `READY`, fixed aliases returned HTTP 200, the production API reported the expected Git SHA, the manual uptime run passed, and both projects had no runtime errors.
 - Remaining paid-only options are intentionally declined: purchased custom domain, Vercel monitoring add-ons, and database upgrades.
