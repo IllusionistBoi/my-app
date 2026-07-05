@@ -1,0 +1,41 @@
+name: Free uptime check
+
+on:
+  schedule:
+    - cron: "23 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: uptime-check
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: Fixed aliases and API readiness
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check production and preview
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          fetch() {
+            curl \
+              --fail \
+              --silent \
+              --show-error \
+              --retry 3 \
+              --retry-all-errors \
+              --connect-timeout 10 \
+              --max-time 30 \
+              "$1"
+          }
+
+          fetch "https://my-app-tau-seven-25.vercel.app/" | grep -q "Planning Poker"
+          fetch "https://my-app-tau-seven-25.vercel.app/api/ready/" | grep -q '"status": "ready"'
+          fetch "https://planning-poker-preview-ronit.vercel.app/" | grep -q "Planning Poker"
+          fetch "https://planning-poker-api-preview-ronit.vercel.app/api/ready/" | grep -q '"status": "ready"'

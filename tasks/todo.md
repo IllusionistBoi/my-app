@@ -328,7 +328,7 @@ Severity:
 - [x] Create a clean root commit, force-push the replacement `master` history, and delete the obsolete remote feature branch containing another database copy.
 - [x] Connect both Vercel projects to the clean GitHub repository with roots `frontend` and `backend/poker_project`.
 - [x] Update all documentation to describe the free Vercel + Neon architecture, stable domain, quotas, and recovery steps.
-- [ ] Optionally add free external uptime monitoring; do not enable a paid custom domain, monitoring add-on, database plan, or Vercel plan.
+- [x] Add a free six-hour GitHub Actions uptime/readiness check; do not enable a paid custom domain, monitoring add-on, database plan, or Vercel plan.
 
 ## Definition of done
 
@@ -364,4 +364,5 @@ _No application behavior changes started before completion of this findings regi
 - 2026-07-05: Deployed and verified fixed free aliases for frontend/backend production and preview. Both live environments passed isolated two-context E2E coverage, hidden-vote/reveal/reset behavior, 320px layout, console/page-error assertions, security headers, cleanup, and runtime-error scans.
 - 2026-07-05: Replaced the remote `master` history with clean root commit `68f5cca` and deleted the obsolete `feat/performance-optimizations-websockets` branch, removing all remote branch references to the tracked SQLite copies and exposed key.
 - 2026-07-05: Connected frontend project `my-app` to root `frontend` and backend project `planning-poker-api-ronit` to root `backend/poker_project` on the clean GitHub repository.
-- Remaining optional work: add a free external uptime monitor if desired.
+- 2026-07-05: Added a free six-hour GitHub Actions check for both fixed frontend aliases and both API readiness paths. No third-party monitoring account or paid Vercel feature is used.
+- Remaining paid-only options are intentionally declined: purchased custom domain, Vercel monitoring add-ons, and database upgrades.

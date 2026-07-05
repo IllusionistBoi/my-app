@@ -326,6 +326,7 @@ Production observability requires:
 - alerts for 5xx rate, latency, failed deploys, failed health checks, and database capacity.
 
 Vercel Hobby retains a limited runtime-log window. Use the dashboard promptly after a failure.
+`.github/workflows/uptime.yml` performs a free six-hour availability/readiness check using standard GitHub-hosted runners. GitHub can automatically disable scheduled workflows in public repositories after 60 days without repository activity; re-enable it from the Actions tab if that occurs.
 
 ## 16. Vercel deployment
 
@@ -456,7 +457,7 @@ After the replacement push:
 - Preview deployments are intentionally public so the frontend can call the preview API without paid Deployment Protection exceptions.
 - Git-backed deployments from the clean `master` history are canonical. Do not use older dirty CLI artifacts as rollback candidates.
 - A purchased custom domain is optional and not free. The fixed `*.vercel.app` production alias is the supported $0 domain.
-- External uptime monitoring is optional. Do not enable paid Vercel monitoring, custom-domain registration, or database upgrades without explicit approval.
+- The free GitHub Actions uptime workflow provides basic availability checks, not an SLA or full error-monitoring service. Do not enable paid Vercel monitoring, custom-domain registration, or database upgrades without explicit approval.
 
 ## 24. Documentation maintenance
 
