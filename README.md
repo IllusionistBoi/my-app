@@ -1,6 +1,8 @@
 # Planning Poker
 
-A short-lived planning-poker room for private estimates, host-controlled reveals, spectators, and repeatable rounds.
+Planning without the poker face: a playful, short-lived room for private estimates, synchronized reveals, spectators, and repeatable rounds.
+
+The experience uses the project’s original interactive Rive teddy, a portfolio-inspired warm-black/orange visual system, responsive card motion, reveal celebrations, and deliberately quirky feedback without compromising accessibility.
 
 ## Live application
 
@@ -18,6 +20,7 @@ The production addresses are stable Vercel aliases. New deployments receive uniq
 - Neon Free — separate London PostgreSQL projects for production and preview/development.
 - `.github/workflows/ci.yml` — clean installs, tests, builds, migrations, security checks, and audits.
 - `CLAUDE.md` — canonical architecture, API, security, deployment, quotas, and recovery handbook.
+- `PROJECT.md` — product, visual system, Rive provenance, motion rules, and release record.
 - `tasks/todo.md` — complete production-readiness audit and implementation record.
 
 No paid Vercel, Render, database, custom-domain, or monitoring resource is required. Vercel Hobby is for personal/non-commercial use and stops features at free limits rather than creating a Hobby billing cycle. Neon Free requires no card but has capacity and retention limits documented in `CLAUDE.md`.
@@ -55,6 +58,16 @@ npm run dev
 
 Open `http://127.0.0.1:5173`. Vite proxies `/api` to Django.
 
+To review the frontend against the isolated preview backend without running Django locally:
+
+```powershell
+Set-Location frontend
+$env:DEV_API_PROXY_TARGET="https://planning-poker-api-preview-ronit.vercel.app"
+npm run dev
+```
+
+`DEV_API_PROXY_TARGET` is consumed by the Vite development server only. It is not embedded in browser code.
+
 Windows users can run `run-dev.bat` after installing both dependency sets.
 
 ## Verification
@@ -81,6 +94,16 @@ python manage.py collectstatic --noinput
 ```
 
 CI also runs PostgreSQL concurrency tests, Django deployment checks, Python dependency auditing, full-history secret scanning, and repository-hygiene checks.
+
+## Design and animation
+
+- `frontend/src/assets/poker-teddy.riv` is the original authored teddy recovered from the first version of the project.
+- `TeddyMascot.jsx` drives its `Login Machine` state machine from form focus, typed names, and success/error signals.
+- Clash Display, Geist, and Geist Mono are self-hosted from Ronit’s portfolio assets.
+- Reveal celebration, card dealing, tactile controls, mobile layouts, and reduced-motion behavior live in `styles.css`.
+- Rive and page routes remain code-split. The build enforces a 300 KB largest-JavaScript limit and a 700 KB total-asset limit.
+
+See `PROJECT.md` for the full design decision and verification record.
 
 ## Deployment
 

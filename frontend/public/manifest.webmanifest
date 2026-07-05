@@ -1,11 +1,11 @@
 {
   "name": "Planning Poker",
   "short_name": "Poker",
-  "description": "Private estimates and clear team decisions.",
+  "description": "Private estimates, synchronized reveals, and better team conversations.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f7f7f2",
-  "theme_color": "#101828",
+  "background_color": "#0d0b09",
+  "theme_color": "#0d0b09",
   "icons": [
     {
       "src": "/logo192.png",

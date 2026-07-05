@@ -337,6 +337,18 @@ Severity:
 - [x] Confirm both Vercel projects deploy the final Git commit to their fixed production aliases.
 - [x] Re-run fixed-domain readiness checks and leave the repository clean.
 
+### Phase 8 — signature visual redesign
+
+- [x] Audit the current home, room, reveal, empty, loading, error, mobile, and footer states against the supplied screenshots and portfolio visual language.
+- [x] Restore the original authored teddy Rive asset and integrate its `Login Machine` inputs in an isolated, responsive component with a non-blocking fallback.
+- [x] Replace the generic light UI with a cohesive warm-black/orange visual system, characterful typography, asymmetric composition, and a complete responsive footer.
+- [x] Add purposeful motion: staged page entrances, tactile card/button feedback, live status motion, and a one-shot reduced-motion-safe reveal celebration.
+- [x] Rewrite system feedback with clear but quirky messages and add useful revealed-round commentary without weakening error meaning or accessibility.
+- [x] Extend unit/E2E coverage for the redesigned flows, Rive fallback, responsive layout, reduced motion, and clean browser console.
+- [x] Create `PROJECT.md`; update `README.md`, `CLAUDE.md`, and the implementation log with the design system, asset provenance, motion rules, and verification evidence.
+- [x] Run clean tests, audits, production build/size checks, local full-stack browser review, and mobile/desktop visual inspection.
+- [ ] Commit and push the redesign, verify GitHub CI and both Vercel deployments, smoke-test the fixed production URL, and scan runtime errors.
+
 ## Definition of done
 
 - No P0 findings remain in code or deployment configuration.
@@ -373,4 +385,6 @@ _No application behavior changes started before completion of this findings regi
 - 2026-07-05: Connected frontend project `my-app` to root `frontend` and backend project `planning-poker-api-ronit` to root `backend/poker_project` on the clean GitHub repository.
 - 2026-07-05: Added a free six-hour GitHub Actions check for both fixed frontend aliases and both API readiness paths. No third-party monitoring account or paid Vercel feature is used.
 - 2026-07-05: Upgraded GitHub Actions to Node 24-compatible majors. Final CI passed all five jobs without deprecated-runtime warnings; both Git-backed Vercel deployments reached `READY`, fixed aliases returned HTTP 200, the production API reported the expected Git SHA, the manual uptime run passed, and both projects had no runtime errors.
+- 2026-07-05: Recovered the original `animated_login_character.riv` teddy from pre-cleanup Git history and rebuilt the frontend around a warm-black/orange portfolio-inspired visual system. Added state-driven Rive reactions, locally hosted Clash/Geist fonts, a complete footer, quirky typed feedback, reveal commentary, tactile card motion, a reduced-motion-safe card burst, pinned Rive WASM hosts under CSP, and a preview-backed local review proxy.
+- 2026-07-05: Redesign verification passed locally: clean Node 24 install, 10/10 unit tests, 3/3 Playwright flows with two isolated participants, hidden votes, reveal/reset/cleanup, 320px no-overflow and reduced-motion checks; 617,287-byte build under the 700KB total/300KB JS ceilings; zero npm advisories; and 23 backend tests passed with one expected PostgreSQL-only local skip.
 - Remaining paid-only options are intentionally declined: purchased custom domain, Vercel monitoring add-ons, and database upgrades.

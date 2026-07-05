@@ -1,7 +1,11 @@
+import { CheckCircle, WarningCircle } from "@phosphor-icons/react";
+
 export default function StatusMessage({ message, tone = "error", id }) {
   if (!message) {
     return null;
   }
+
+  const Icon = tone === "error" ? WarningCircle : CheckCircle;
 
   return (
     <div
@@ -9,7 +13,8 @@ export default function StatusMessage({ message, tone = "error", id }) {
       id={id}
       role={tone === "error" ? "alert" : "status"}
     >
-      {message}
+      <Icon aria-hidden="true" size={20} weight="bold" />
+      <span>{message}</span>
     </div>
   );
 }

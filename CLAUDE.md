@@ -82,6 +82,7 @@ Preview builds use a fixed preview API alias and a separate Neon project. Never 
 |   `-- dependabot.yml
 |-- run-dev.bat
 |-- README.md
+|-- PROJECT.md                Product, visual system, Rive, motion, and release record
 |-- RUNNING.md
 |-- AUTH_DOCUMENTATION.md
 `-- tasks/                      Audit plan, findings, and lessons
@@ -129,6 +130,7 @@ Production settings must fail closed when a required secret or host is missing. 
 | Variable | Required | Purpose |
 | --- | --- | --- |
 | `VITE_API_URL` | Optional build-time value | API base. The default `/api` uses Vite's local proxy and Vercel's production rewrite. Preview must use an isolated staging API. |
+| `DEV_API_PROXY_TARGET` | Optional local-process value | Overrides Vite's development proxy target for production-like review against the isolated preview API. It is not a `VITE_*` value and is not exposed to browser code. |
 
 Vite embeds `VITE_*` values into the public browser bundle. They can never contain secrets.
 
@@ -291,6 +293,11 @@ On PostgreSQL, wrap JSON or row-based state transitions in `transaction.atomic()
 - Disable controls while the corresponding mutation is pending.
 - Use native semantic controls and visible keyboard focus.
 - Honor reduced-motion preferences.
+- Keep the single-accent warm-black/orange visual system and self-hosted Clash Display/Geist typography coherent across every route.
+- Keep `TeddyMascot` isolated from form/page state except for its small input prop contract; preserve its CSS fallback and reduced-motion pause.
+- Use the Rive celebration only for meaningful state changes. Frequent actions need fast tactile feedback, not long animation.
+- Animate transform and opacity; gate hover transforms behind fine-pointer media queries.
+- Preserve the 300 KB largest-JavaScript budget. The 700 KB total budget explicitly includes the restored Rive file and self-hosted fonts.
 - Provide explicit loading, empty, removed, expired, offline, and fatal states.
 - Do not expose raw votes before reveal.
 - Do not report clipboard success before the promise resolves.

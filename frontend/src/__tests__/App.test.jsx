@@ -23,6 +23,10 @@ vi.mock("../api.js", () => ({
   },
 }));
 
+vi.mock("../components/TeddyMascot.jsx", () => ({
+  default: () => <div data-testid="teddy-mascot" />,
+}));
+
 import { sessionsApi } from "../api.js";
 
 const baseSession = {
@@ -86,9 +90,12 @@ describe("planning-poker workflows", () => {
     });
     renderHome();
 
-    await user.type(screen.getByLabelText("Your name", { selector: "#create-name" }), "Alice");
-    await user.type(screen.getByLabelText("Room name"), "Sprint planning");
-    await user.click(screen.getByRole("button", { name: "Create room" }));
+    await user.type(
+      screen.getByLabelText("What should we call you?", { selector: "#create-name" }),
+      "Alice",
+    );
+    await user.type(screen.getByLabelText("Name this tiny democracy"), "Sprint planning");
+    await user.click(screen.getByRole("button", { name: "Deal a room" }));
 
     expect(await screen.findByRole("heading", { name: "Room opened" })).toBeInTheDocument();
     expect(sessionsApi.create).toHaveBeenCalledWith("Alice", "Sprint planning");
@@ -99,9 +106,12 @@ describe("planning-poker workflows", () => {
     const user = userEvent.setup();
     renderHome();
 
-    await user.type(screen.getByLabelText("Your name", { selector: "#join-name" }), "Bob");
-    await user.type(screen.getByLabelText("Room code"), "bad");
-    await user.click(screen.getByRole("button", { name: "Join room" }));
+    await user.type(
+      screen.getByLabelText("What should we call you?", { selector: "#join-name" }),
+      "Bob",
+    );
+    await user.type(screen.getByLabelText("Secret-ish room code"), "bad");
+    await user.click(screen.getByRole("button", { name: "Take a seat" }));
 
     expect(screen.getByRole("alert")).toHaveTextContent("ABC-123-XYZ");
     expect(sessionsApi.join).not.toHaveBeenCalled();
@@ -117,7 +127,7 @@ describe("planning-poker workflows", () => {
 
     expect(screen.getByText("Room ABC-123-XYZ")).toBeInTheDocument();
     await user.type(screen.getByLabelText("Your name"), "Alice");
-    await user.click(screen.getByRole("button", { name: "Join room" }));
+    await user.click(screen.getByRole("button", { name: "Enter the room" }));
 
     expect(await screen.findByRole("heading", { name: "Sprint planning" })).toBeInTheDocument();
     expect(sessionsApi.join).toHaveBeenCalledWith("Alice", "ABC-123-XYZ");
@@ -145,7 +155,7 @@ describe("planning-poker workflows", () => {
     await user.click(card);
 
     await waitFor(() => expect(card).toHaveAttribute("aria-pressed", "true"));
-    expect(screen.getByRole("button", { name: "Reveal cards" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Flip the table" })).toBeEnabled();
     expect(sessionsApi.castVote).toHaveBeenCalledWith(
       "ABC-123-XYZ",
       5,

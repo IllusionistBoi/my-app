@@ -1,8 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Check,
+  Copy,
+  Eye,
+  House,
+  Hourglass,
+  Trash,
+  UserMinus,
+} from "@phosphor-icons/react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { ApiError, sessionsApi } from "../api.js";
 import Brand from "../components/Brand.jsx";
+import RevealBurst from "../components/RevealBurst.jsx";
+import SiteFooter from "../components/SiteFooter.jsx";
 import StatusMessage from "../components/StatusMessage.jsx";
 import {
   getSessionToken,
@@ -11,6 +22,7 @@ import {
   removeSessionToken,
   saveSessionToken,
 } from "../sessionStore.js";
+import { friendlyError } from "../uiCopy.js";
 
 const VOTE_VALUES = [1, 2, 3, 5, 8, 13];
 const POLL_INTERVAL_MS = 4_000;
@@ -45,6 +57,39 @@ function formatExpiry(value) {
   }).format(date);
 }
 
+function revealStory(results) {
+  const values = Object.values(results)
+    .map((result) => result.vote)
+    .filter((value) => Number.isFinite(value));
+  if (!values.length) {
+    return {
+      title: "A reveal with no cards. Bold.",
+      body: "Start another round and ask the humans to pick this time.",
+    };
+  }
+
+  const lowest = Math.min(...values);
+  const highest = Math.max(...values);
+  const spread = highest - lowest;
+
+  if (spread === 0) {
+    return {
+      title: "Suspiciously perfect alignment.",
+      body: "Either the work is crystal clear or everyone rehearsed. Take the win.",
+    };
+  }
+  if (spread <= 3) {
+    return {
+      title: "A tiny wobble, not a crisis.",
+      body: `The room spans ${lowest} to ${highest}. One quick assumption check should do it.`,
+    };
+  }
+  return {
+    title: "Well, that escalated.",
+    body: `The room spans ${lowest} to ${highest}. Compare the smallest and largest assumptions before anyone reaches for an average.`,
+  };
+}
+
 function DeepLinkJoin({ sessionId, onJoined, pending, error }) {
   const [username, setUsername] = useState("");
 
@@ -58,8 +103,8 @@ function DeepLinkJoin({ sessionId, onJoined, pending, error }) {
       <section className="join-panel" aria-labelledby="join-title">
         <Brand />
         <p className="eyebrow">Room {sessionId}</p>
-        <h1 id="join-title">Introduce yourself to join.</h1>
-        <p>Your room link never carries someone else’s identity or private access.</p>
+        <h1 id="join-title">Name yourself, mysterious estimator.</h1>
+        <p>The link gets you to the door. Your name gets you a chair.</p>
         <StatusMessage message={error} />
         <form onSubmit={handleSubmit}>
           <div className="field">
@@ -77,7 +122,7 @@ function DeepLinkJoin({ sessionId, onJoined, pending, error }) {
             />
           </div>
           <button className="button button-primary button-full" disabled={pending} type="submit">
-            {pending ? "Joining…" : "Join room"}
+            {pending ? "Finding your chair…" : "Enter the room"}
           </button>
         </form>
         <Link className="text-link" to="/">
@@ -126,7 +171,15 @@ function ParticipantCard({ username, voteState, session, onRemove, busy }) {
               : "Waiting for vote"
         }
       >
-        {isSpectator ? "○" : session.is_revealed ? (voteState?.vote ?? "—") : voteState?.has_voted ? "✓" : "…"}
+        {isSpectator ? (
+          <Eye aria-hidden="true" size={17} weight="bold" />
+        ) : session.is_revealed ? (
+          (voteState?.vote ?? "—")
+        ) : voteState?.has_voted ? (
+          <Check aria-hidden="true" size={18} weight="bold" />
+        ) : (
+          <Hourglass aria-hidden="true" size={17} weight="bold" />
+        )}
       </span>
       {session.current_user.is_creator && !isCreator ? (
         <button
@@ -136,7 +189,7 @@ function ParticipantCard({ username, voteState, session, onRemove, busy }) {
           title={`Remove ${username}`}
           type="button"
         >
-          <span aria-hidden="true">×</span>
+          <UserMinus aria-hidden="true" size={18} weight="bold" />
           <span className="sr-only">Remove {username}</span>
         </button>
       ) : null}
@@ -158,9 +211,11 @@ export default function RoomPage() {
   const [action, setAction] = useState(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [burstKey, setBurstKey] = useState(null);
   const [isOnline, setIsOnline] = useState(() => window.navigator.onLine);
   const actionRef = useRef(null);
   const sessionRef = useRef(initialSession);
+  const previousRevealRef = useRef(initialSession?.is_revealed);
 
   const applySession = useCallback((incoming) => {
     const next = newerSession(sessionRef.current, incoming);
@@ -177,7 +232,7 @@ export default function RoomPage() {
         setSession(null);
         sessionRef.current = null;
         setPhase("join");
-        setError("Your access to this room expired or was revoked. Join again to continue.");
+        setError("The room bouncer lost your name. Join again and we will restore your chair.");
         return true;
       }
       if (requestError.status === 404) {
@@ -195,10 +250,10 @@ export default function RoomPage() {
         return true;
       }
       if (background) {
-        setNotice("Live updates are paused. Reconnecting…");
+        setNotice("The live feed blinked. Reconnecting before anyone notices…");
         return false;
       }
-      setError(requestError.message);
+      setError(friendlyError(requestError));
       return false;
     },
     [sessionId],
@@ -211,7 +266,7 @@ export default function RoomPage() {
     };
     const goOffline = () => {
       setIsOnline(false);
-      setNotice("You are offline. Your room will update when the connection returns.");
+      setNotice("You are off the grid. Your cards will catch up when the internet returns.");
     };
     window.addEventListener("online", goOnline);
     window.addEventListener("offline", goOffline);
@@ -220,6 +275,21 @@ export default function RoomPage() {
       window.removeEventListener("offline", goOffline);
     };
   }, []);
+
+  useEffect(() => {
+    if (!session) {
+      return undefined;
+    }
+    const wasRevealed = previousRevealRef.current;
+    previousRevealRef.current = session.is_revealed;
+    if (wasRevealed === false && session.is_revealed) {
+      const nextBurst = `${session.round_number}-${session.updated_at}`;
+      setBurstKey(nextBurst);
+      const timer = window.setTimeout(() => setBurstKey(null), 1_600);
+      return () => window.clearTimeout(timer);
+    }
+    return undefined;
+  }, [session]);
 
   useEffect(() => {
     if (!isValidSessionId(sessionId)) {
@@ -335,25 +405,25 @@ export default function RoomPage() {
     const inviteUrl = `${window.location.origin}/session/${sessionId}`;
     try {
       await window.navigator.clipboard.writeText(inviteUrl);
-      setNotice("Invite link copied.");
+      setNotice("Invite copied. Summon the spreadsheet survivors.");
     } catch {
-      setError(`Copy failed. Share this link: ${inviteUrl}`);
+      setError(`The clipboard played hard to get. Copy this instead: ${inviteUrl}`);
     }
   }
 
   function removeParticipant(username) {
-    if (!window.confirm(`Remove ${username} from this room? Their current access will be revoked.`)) {
+    if (!window.confirm(`Show ${username} the door? Their current access will be revoked.`)) {
       return;
     }
     void runAction(
       `remove-${username}`,
       () => sessionsApi.removeParticipant(sessionId, username, token),
-      `${username} was removed.`,
+      `${username} left the table. Their card went with them.`,
     );
   }
 
   function deleteRoom() {
-    if (!window.confirm("Delete this room permanently? This cannot be undone.")) {
+    if (!window.confirm("Burn this room to the ground? This cannot be undone.")) {
       return;
     }
     void runAction("delete", async () => {
@@ -383,11 +453,14 @@ export default function RoomPage() {
     return (
       <main className="centered-page" id="main-content">
         <section className="empty-state">
-          <p className="eyebrow">Room not found</p>
-          <h1>Check the invite link or room code.</h1>
-          <p>This room may have been deleted, or the code may be incomplete.</p>
+          <p className="error-code" aria-hidden="true">
+            404
+          </p>
+          <p className="eyebrow">The table vanished</p>
+          <h1>This room folded and left no forwarding address.</h1>
+          <p>Check the code, or ask the host whether they rage-deleted it.</p>
           <Link className="button button-primary" to="/">
-            Back home
+            Find another table
           </Link>
         </section>
       </main>
@@ -398,11 +471,11 @@ export default function RoomPage() {
     return (
       <main className="centered-page" id="main-content">
         <section className="empty-state">
-          <p className="eyebrow">Room expired</p>
-          <h1>This planning room has closed.</h1>
-          <p>Rooms expire automatically to keep old participant data from lingering.</p>
+          <p className="eyebrow">The last call was called</p>
+          <h1>This room has retired.</h1>
+          <p>Old rooms expire automatically. Even backlogs deserve boundaries.</p>
           <Link className="button button-primary" to="/">
-            Create a new room
+            Deal a fresh room
           </Link>
         </section>
       </main>
@@ -424,8 +497,12 @@ export default function RoomPage() {
     return (
       <main className="centered-page" id="main-content">
         <div className="loading-state" role="status">
-          <span className="spinner" aria-hidden="true" />
-          <p>Opening room {sessionId}…</p>
+          <div className="loading-deck" aria-hidden="true">
+            <i>3</i>
+            <i>5</i>
+            <i>8</i>
+          </div>
+          <p>Pulling up a chair in room {sessionId}…</p>
         </div>
       </main>
     );
@@ -433,16 +510,23 @@ export default function RoomPage() {
 
   const currentVote = session.votes[session.current_user.username];
   const busy = action !== null;
+  const revealedStory = session.is_revealed
+    ? revealStory(session.vote_results)
+    : null;
 
   return (
     <div className="room-shell">
+      <div className="grain" aria-hidden="true" />
+      <RevealBurst burstKey={burstKey} />
       <header className="room-header">
         <Brand compact />
         <div className="room-header-actions">
           <button className="button button-quiet" onClick={copyInviteLink} type="button">
-            Copy invite link
+            <Copy aria-hidden="true" size={17} weight="bold" />
+            Copy invite
           </button>
           <Link className="button button-quiet" to="/">
+            <House aria-hidden="true" size={17} weight="bold" />
             Home
           </Link>
         </div>
@@ -452,11 +536,12 @@ export default function RoomPage() {
         <section className="room-title-row" aria-labelledby="room-title">
           <div>
             <p className="eyebrow">
-              Round {session.round_number} · {session.session_id}
+              Round {session.round_number} <span aria-hidden="true">/</span> {session.session_id}
             </p>
             <h1 id="room-title">{session.name}</h1>
             <p>
-              Hosted by {session.created_by}. Room expires {formatExpiry(session.expires_at)}.
+              {session.created_by} is holding the gavel. This table vanishes{" "}
+              {formatExpiry(session.expires_at)}.
             </p>
           </div>
           <div className={`connection-pill${isOnline ? "" : " connection-offline"}`}>
@@ -491,17 +576,27 @@ export default function RoomPage() {
             </div>
 
             {session.is_revealed ? (
-              <div className="results-grid" aria-label="Revealed estimates">
-                {Object.entries(session.vote_results).map(([username, result]) => (
-                  <article className="result-card" key={username}>
-                    <span className="result-value">{result.vote}</span>
-                    <strong>{username}</strong>
-                  </article>
-                ))}
-              </div>
+              <>
+                <div className="reveal-story">
+                  <p>{revealedStory.title}</p>
+                  <span>{revealedStory.body}</span>
+                </div>
+                <div className="results-grid" aria-label="Revealed estimates">
+                  {Object.entries(session.vote_results).map(([username, result], index) => (
+                    <article
+                      className="result-card"
+                      key={username}
+                      style={{ "--result-index": index }}
+                    >
+                      <span className="result-value">{result.vote}</span>
+                      <strong>{username}</strong>
+                    </article>
+                  ))}
+                </div>
+              </>
             ) : (
               <div className="vote-grid" aria-label="Estimate cards">
-                {VOTE_VALUES.map((value) => (
+                {VOTE_VALUES.map((value, index) => (
                   <button
                     aria-label={`${value} points`}
                     aria-pressed={currentVote?.vote === value}
@@ -512,9 +607,10 @@ export default function RoomPage() {
                       runAction(
                         `vote-${value}`,
                         () => sessionsApi.castVote(sessionId, value, token),
-                        `Vote ${value} saved.`,
+                        `${value} locked in. Poker face on.`,
                       )
                     }
+                    style={{ "--card-index": index }}
                     type="button"
                   >
                     <span>{value}</span>
@@ -533,7 +629,7 @@ export default function RoomPage() {
                     runAction(
                       "clear",
                       () => sessionsApi.clearVote(sessionId, token),
-                      "Vote cleared.",
+                      "Vote vanished. Nobody saw a thing.",
                     )
                   }
                   type="button"
@@ -556,8 +652,8 @@ export default function RoomPage() {
                             token,
                           ),
                         event.target.checked
-                          ? "You are watching this round."
-                          : "You can vote again.",
+                          ? "Spectator mode: snacks encouraged."
+                          : "You are back in the game.",
                       )
                     }
                     type="checkbox"
@@ -572,7 +668,11 @@ export default function RoomPage() {
                 <div>
                   <p className="eyebrow">Host controls</p>
                   <h3 id="host-controls-title">
-                    {session.is_revealed ? "Ready for another round?" : "Reveal when everyone is ready."}
+                    {session.is_revealed
+                      ? "Run it back with a fresh hand?"
+                      : readiness.allReady
+                        ? "Every poker face is locked. Flip when ready."
+                        : "The dramatic reveal waits for every active player."}
                   </h3>
                 </div>
                 {session.is_revealed ? (
@@ -583,12 +683,12 @@ export default function RoomPage() {
                       runAction(
                         "reset",
                         () => sessionsApi.reset(sessionId, token),
-                        "A new round is ready.",
+                        "Fresh round. Same mysterious backlog.",
                       )
                     }
                     type="button"
                   >
-                    {action === "reset" ? "Resetting…" : "Start next round"}
+                    {action === "reset" ? "Collecting cards…" : "Deal next round"}
                   </button>
                 ) : (
                   <button
@@ -598,12 +698,12 @@ export default function RoomPage() {
                       runAction(
                         "reveal",
                         () => sessionsApi.reveal(sessionId, token),
-                        "Votes revealed.",
+                        "Cards up. Let the explaining begin.",
                       )
                     }
                     type="button"
                   >
-                    {action === "reveal" ? "Revealing…" : "Reveal cards"}
+                    {action === "reveal" ? "Building suspense…" : "Flip the table"}
                   </button>
                 )}
               </div>
@@ -638,6 +738,7 @@ export default function RoomPage() {
                   onClick={deleteRoom}
                   type="button"
                 >
+                  <Trash aria-hidden="true" size={17} weight="bold" />
                   Delete this room
                 </button>
               </div>
@@ -645,6 +746,7 @@ export default function RoomPage() {
           </aside>
         </div>
       </main>
+      <SiteFooter />
     </div>
   );
 }

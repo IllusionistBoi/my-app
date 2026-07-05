@@ -6,7 +6,10 @@ export default function Brand({ compact = false }) {
       <span className="brand-mark" aria-hidden="true">
         P
       </span>
-      <span>Planning Poker</span>
+      <span className="brand-copy">
+        <strong>Planning Poker</strong>
+        {!compact ? <small>Quiet cards. Loud clarity.</small> : null}
+      </span>
     </Link>
   );
 }

@@ -18,8 +18,8 @@ test("two participants keep votes private until the host reveals", async ({
   const hostErrors = capturePageErrors(hostPage);
   await hostPage.goto("/");
   await hostPage.locator("#create-name").fill("E2E Host");
-  await hostPage.getByLabel("Room name").fill("Release confidence");
-  await hostPage.getByRole("button", { name: "Create room" }).click();
+  await hostPage.getByLabel("Name this tiny democracy").fill("Release confidence");
+  await hostPage.getByRole("button", { name: "Deal a room" }).click();
   await expect(hostPage).toHaveURL(/\/session\/[A-Z0-9-]+$/);
   await expect(
     hostPage.getByRole("heading", { name: "Release confidence" }),
@@ -30,10 +30,12 @@ test("two participants keep votes private until the host reveals", async ({
   const participantErrors = capturePageErrors(participantPage);
   await participantPage.goto(hostPage.url());
   await expect(
-    participantPage.getByRole("heading", { name: "Introduce yourself to join." }),
+    participantPage.getByRole("heading", {
+      name: "Name yourself, mysterious estimator.",
+    }),
   ).toBeVisible();
   await participantPage.getByLabel("Your name").fill("E2E Participant");
-  await participantPage.getByRole("button", { name: "Join room" }).click();
+  await participantPage.getByRole("button", { name: "Enter the room" }).click();
   await expect(
     participantPage.getByRole("heading", { name: "Release confidence" }),
   ).toBeVisible();
@@ -47,7 +49,7 @@ test("two participants keep votes private until the host reveals", async ({
   await expect(participantRow).toContainText("Vote locked in");
   await expect(participantRow).not.toContainText("Voted 8");
 
-  const revealButton = hostPage.getByRole("button", { name: "Reveal cards" });
+  const revealButton = hostPage.getByRole("button", { name: "Flip the table" });
   await expect(revealButton).toBeEnabled();
   await revealButton.click();
 
@@ -58,7 +60,7 @@ test("two participants keep votes private until the host reveals", async ({
     hostPage.locator(".result-card").filter({ hasText: "e2e participant" }),
   ).toContainText("8");
 
-  await hostPage.getByRole("button", { name: "Start next round" }).click();
+  await hostPage.getByRole("button", { name: "Deal next round" }).click();
   await expect(hostPage.getByText("Round 2", { exact: false })).toBeVisible();
   await expect(
     participantPage.getByRole("button", { name: "8 points" }),
@@ -79,14 +81,31 @@ test("home and room-entry layouts do not overflow at 320px", async ({ page }) =>
 
   await expect(
     page.getByRole("heading", {
-      name: "Plan together without anchoring the room.",
+      name: "Call the bluff. Find the estimate.",
     }),
   ).toBeVisible();
-  await expect(page.getByLabel("Room code")).toBeAttached();
+  await expect(page.getByLabel("Secret-ish room code")).toBeAttached();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth === document.documentElement.clientWidth,
     ),
   ).toBe(true);
   expect(pageErrors).toEqual([]);
+});
+
+test("reduced motion keeps the design readable without perpetual movement", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+
+  await expect(page.locator(".mascot-stage")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Call the bluff. Find the estimate." }),
+  ).toBeVisible();
+  expect(
+    await page.locator(".ticker div").evaluate((element) => {
+      return window.getComputedStyle(element).animationIterationCount;
+    }),
+  ).toBe("1");
 });

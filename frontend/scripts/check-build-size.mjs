@@ -8,7 +8,8 @@ const projectDirectory = path.resolve(
 );
 const outputDirectory = path.join(projectDirectory, "dist");
 const largestJavaScriptBudget = 300 * 1024;
-const totalAssetBudget = 500 * 1024;
+// Includes the restored 35 KB Rive mascot and 90 KB of self-hosted brand fonts.
+const totalAssetBudget = 700 * 1024;
 
 async function collectFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
