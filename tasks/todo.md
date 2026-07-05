@@ -364,16 +364,17 @@ Severity:
 - [x] Reposition or simplify the reveal celebration so it never obscures commentary, vote cards, controls, or participants.
 - [x] Move room status into the content hierarchy, refine participant actions, and ensure the skip link appears only for true keyboard focus.
 - [x] Add reduced-motion-safe pointer tracking to the teddy and make all existing form/success/failure reactions explicit and testable.
-- [ ] Add a clear zero-cost frontend `.vercel.app` alias; keep the current alias as a compatibility fallback.
+- [x] Add a clear zero-cost frontend `.vercel.app` alias; keep the current alias as a compatibility fallback.
 - [x] Make the backend project root explain that it is the private application API instead of returning a confusing 404.
 - [x] Update tests and documentation, then run complete local visual, responsive, interaction, accessibility, backend, and build verification.
-- [ ] Commit, push, verify CI and both Vercel deployments, run live E2E/visual checks, and confirm the final fixed aliases and runtime logs.
+- [x] Commit, push, verify CI and both Vercel deployments, run live E2E/visual checks, and confirm the final fixed aliases and runtime logs.
 
 Phase 9 verification notes:
 
 - 2026-07-06: Frontend verification passed 13/13 unit tests and the production build/size budget. The first backend check stopped before tests because the shell inherited production debug settings without a key; re-planned all backend commands with explicit environments.
 - 2026-07-06: Backend verification passed 24 tests with one expected SQLite concurrency skip, no migration drift and clean deployment checks. The expanded Playwright suite initially exposed a keyboard-focus timing assertion and insufficient total cleanup time; removing keyboard-triggered motion and adding guaranteed cleanup produced a clean 4/4 run.
 - 2026-07-06: Final source verification passed again under pinned Node 24: 13/13 frontend tests, a 618,206-byte production build under both size budgets, clean diff checks, and 4/4 full-stack browser flows with guaranteed room cleanup.
+- 2026-07-06: Release `30cb70a` passed five GitHub CI jobs, reached `READY` on both Vercel projects, passed 4/4 live browser flows, returned HTTP 200 from both frontend aliases and both API entry points, passed the free uptime workflow and produced no Vercel runtime-error clusters.
 
 ## Definition of done
 
@@ -416,4 +417,5 @@ _No application behavior changes started before completion of this findings regi
 - 2026-07-05: Application release `1aefcc1` passed all five GitHub CI jobs and reached `READY` on both fixed production aliases. The live suite passed 3/3 with the authored Rive teddy compiling under the narrow CSP, no console/page errors, responsive and reduced-motion checks, and test-room cleanup; readiness/version probes, visual inspection, uptime workflow, and both Vercel runtime-error scans also passed.
 - 2026-07-05: Recovered the original `animated_login_character.riv` teddy from pre-cleanup Git history and rebuilt the frontend around a warm-black/orange portfolio-inspired visual system. Added state-driven Rive reactions, locally hosted Clash/Geist fonts, a complete footer, quirky typed feedback, reveal commentary, tactile card motion, a reduced-motion-safe card burst, pinned Rive WASM hosts under CSP, and a preview-backed local review proxy.
 - 2026-07-05: Redesign verification passed locally: clean Node 24 install, 10/10 unit tests, 3/3 Playwright flows with two isolated participants, hidden votes, reveal/reset/cleanup, 320px no-overflow and reduced-motion checks; 617,287-byte build under the 700KB total/300KB JS ceilings; zero npm advisories; and 23 backend tests passed with one expected PostgreSQL-only local skip.
+- 2026-07-06: Corrected the screenshot-reported design regressions, added test-backed teddy pointer tracking, attached the free `planning-poker-ronit.vercel.app` alias, replaced the API project's confusing root 404 with a service landing response, and verified the complete release locally and in production.
 - Remaining paid-only options are intentionally declined: purchased custom domain, Vercel monitoring add-ons, and database upgrades.

@@ -137,4 +137,13 @@ Local screenshot-correction verification completed on 6 July 2026:
 - Backend: 24 tests passed with one expected PostgreSQL-only local skip; migration drift and Django deployment checks passed.
 - Manual browser review: desktop and 320 px home, aligned forms, populated room, selected vote, ready room, non-obscuring reveal and compact footer inspected.
 
+Production screenshot-correction release completed on 6 July 2026:
+
+- Application commit `30cb70a4eeb939ba17494848a77dd66f12f04846` passed all five GitHub CI jobs and reached `READY` on both Vercel projects.
+- The free primary alias `planning-poker-ronit.vercel.app` was attached to the frontend; `my-app-tau-seven-25.vercel.app` remains available for compatibility.
+- The new primary alias, its same-origin readiness route, the compatibility alias, the direct API landing route and the API readiness route all returned HTTP 200.
+- Live Playwright passed 4/4 against the new primary alias, including the complete two-participant workflow and disposable-room cleanup.
+- The direct API root now describes the backend and links visitors to the browser application instead of returning 404.
+- The manually triggered free uptime workflow passed, and both Vercel projects reported no runtime errors.
+
 Detailed security, backend, deployment, recovery and free-plan operations remain canonical in `CLAUDE.md`. The full audit and implementation chronology live in `tasks/todo.md`.
