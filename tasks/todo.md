@@ -325,7 +325,7 @@ Severity:
 - [x] Deploy Django, then verify health/readiness/version, authorization, hidden votes, persistence, security headers, and runtime logs.
 - [x] Point the frontend same-origin `/api` proxy and CSP at the new backend, deploy a preview, and run live full-stack smoke tests.
 - [x] Deploy the tested frontend to production and verify the fixed production alias, two-browser workflow, responsive layout, console, and rollback path.
-- [ ] Create a clean commit and purge the historical database/key before pushing the replacement Git history.
+- [x] Create a clean root commit, force-push the replacement `master` history, and delete the obsolete remote feature branch containing another database copy.
 - [x] Update all documentation to describe the free Vercel + Neon architecture, stable domain, quotas, and recovery steps.
 - [ ] Optionally add free external uptime monitoring; do not enable a paid custom domain, monitoring add-on, database plan, or Vercel plan.
 
@@ -361,4 +361,5 @@ _No application behavior changes started before completion of this findings regi
 - 2026-07-05: User confirmed the old deployment has no real users or data-retention requirement. Replaced the paid Render plan with two Vercel Hobby projects and two explicitly selected Neon `free_v3` databases; no card, trial, paid custom domain, or billable add-on was enabled.
 - 2026-07-05: Fixed the legacy UUID-to-bigint migration defect exposed by the first real PostgreSQL migration. Clean Neon production and preview schemas now migrate through `0009`.
 - 2026-07-05: Deployed and verified fixed free aliases for frontend/backend production and preview. Both live environments passed isolated two-context E2E coverage, hidden-vote/reveal/reset behavior, 320px layout, console/page-error assertions, security headers, cleanup, and runtime-error scans.
-- Remaining release work: create and push the clean replacement Git history, reconnect both Vercel projects to their monorepo roots, and optionally add a free uptime monitor.
+- 2026-07-05: Replaced the remote `master` history with clean root commit `68f5cca` and deleted the obsolete `feat/performance-optimizations-websockets` branch, removing all remote branch references to the tracked SQLite copies and exposed key.
+- Remaining release work: reconnect both Vercel projects to their monorepo roots and optionally add a free uptime monitor.
