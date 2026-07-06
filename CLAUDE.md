@@ -116,6 +116,7 @@ Do not rely on a developer machine's global Node or Python version. Clean instal
 | `DATABASE_URL` | Production/preview/CI | Pooled PostgreSQL connection string. Vercel injects it from the environment-scoped Neon integration. |
 | `DJANGO_ALLOWED_HOSTS` | Deployed environments | Comma-separated hostnames. Current Vercel value is `.vercel.app`. |
 | `CORS_ALLOWED_ORIGINS` | If cross-origin browser access is enabled | Comma-separated origins including scheme. Same-origin proxying should minimize this list. |
+| `CORS_ALLOWED_ORIGIN_REGEXES` | Preview only | Comma-separated regexes matching allowed browser origins. Use on Preview (disposable, no private data) because Vercel preview frontends get a fresh hostname each deploy; e.g. `^https://.*-ronits-projects-17727dad\.vercel\.app$`. Leave empty in production (served same-origin). |
 | `PUBLIC_APP_URL` | Backend | Public browser application linked from the API landing response. Defaults to the fixed free production alias. |
 | `CSRF_TRUSTED_ORIGINS` | Cookie/session admin flows | Comma-separated HTTPS origins trusted for CSRF. |
 | `DB_SSL_REQUIRED` | Optional | Defaults to `true` outside debug/tests; disable only for an explicitly local database. |

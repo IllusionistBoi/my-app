@@ -191,6 +191,11 @@ CORS_ALLOWED_ORIGINS = env_list(
     if DEBUG
     else (),
 )
+# Vercel preview frontends get a new hostname hash every deploy, so a fixed origin list cannot
+# keep up when the preview calls the backend cross-origin. Allow matching them by regex — set this
+# ONLY on the disposable Preview environment (which holds no private data); leave it empty in
+# production, which is served same-origin through the /api rewrite and needs no CORS at all.
+CORS_ALLOWED_ORIGIN_REGEXES = env_list("CORS_ALLOWED_ORIGIN_REGEXES")
 CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS")
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
