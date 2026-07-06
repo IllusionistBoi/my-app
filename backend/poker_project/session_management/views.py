@@ -1,5 +1,6 @@
 import logging
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
 from django.utils import timezone
@@ -104,9 +105,11 @@ def _serialize_session(session, current_membership):
     )
     votes = session.votes or {}
     visible_votes = {}
+    display_names = {}
 
     for member in members:
         username = member.user.username
+        display_names[username] = member.display_name or username
         value = _vote_value(votes, username)
         can_view_value = session.is_revealed or member.pk == current_membership.pk
         visible_votes[username] = {
@@ -133,11 +136,17 @@ def _serialize_session(session, current_membership):
                     "is_spectator": False,
                 }
 
+    created_by_username = session.created_by.username
+    current_username = current_membership.user.username
     return {
         "session_id": session.session_id,
         "name": session.name,
-        "created_by": session.created_by.username,
+        "created_by": created_by_username,
+        "created_by_display_name": display_names.get(
+            created_by_username, created_by_username
+        ),
         "participants": [member.user.username for member in members],
+        "display_names": display_names,
         "votes": visible_votes,
         "vote_results": vote_results,
         "round_number": session.round_number,
@@ -146,7 +155,8 @@ def _serialize_session(session, current_membership):
         "updated_at": session.updated_at,
         "expires_at": session.expires_at,
         "current_user": {
-            "username": current_membership.user.username,
+            "username": current_username,
+            "display_name": current_membership.display_name or current_username,
             "is_creator": current_membership.user_id == session.created_by_id,
             "is_spectator": current_membership.is_spectator,
         },
@@ -170,6 +180,7 @@ def create_session(request):
     serializer = CreateSessionSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     username = serializer.validated_data["username"]
+    display_name = serializer.validated_data["display_name"]
     session_name = serializer.validated_data["session_name"]
 
     with transaction.atomic():
@@ -197,7 +208,9 @@ def create_session(request):
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
-        membership = SessionMembership.objects.create(session=session, user=user)
+        membership = SessionMembership.objects.create(
+            session=session, user=user, display_name=display_name
+        )
         session.votes = {
             username: {"vote": None, "is_spectator": False},
         }
@@ -222,6 +235,7 @@ def join_session(request):
     serializer = JoinSessionSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     username = serializer.validated_data["username"]
+    display_name = serializer.validated_data["display_name"]
     session_id = serializer.validated_data["sessionId"]
 
     with transaction.atomic():
@@ -249,11 +263,23 @@ def join_session(request):
         if membership:
             membership.is_active = True
             membership.is_spectator = False
-            membership.save(update_fields=("is_active", "is_spectator"))
+            membership.display_name = display_name
+            membership.save(
+                update_fields=("is_active", "is_spectator", "display_name")
+            )
         else:
+            active_count = SessionMembership.objects.filter(
+                session=session, is_active=True
+            ).count()
+            if active_count >= settings.SESSION_MAX_PARTICIPANTS:
+                raise Conflict(
+                    "This room is full; ask the host to start another",
+                    code="room_full",
+                )
             membership = SessionMembership.objects.create(
                 session=session,
                 user=user,
+                display_name=display_name,
             )
 
         votes = dict(session.votes or {})

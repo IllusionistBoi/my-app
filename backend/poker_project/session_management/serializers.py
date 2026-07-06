@@ -9,13 +9,37 @@ VALID_VOTES = (1, 2, 3, 5, 8, 13)
 USERNAME_PATTERN = re.compile(r"^[\w.@+\- ]+$", re.UNICODE)
 
 
-def normalize_username(value):
-    normalized = " ".join(value.split()).casefold()
-    if not normalized or not USERNAME_PATTERN.fullmatch(normalized):
+def split_username(value):
+    """Return (canonical, display) for a raw username.
+
+    canonical is casefolded and used as the identity/lookup key; display keeps the original
+    casing (whitespace-collapsed) for presentation.
+    """
+    display = " ".join(value.split())
+    canonical = display.casefold()
+    if not canonical or not USERNAME_PATTERN.fullmatch(canonical):
         raise serializers.ValidationError(
             "Use letters, numbers, spaces, or . @ + - _ only"
         )
-    return normalized
+    return canonical, display
+
+
+def normalize_username(value):
+    return split_username(value)[0]
+
+
+class _DisplayNameMixin:
+    """Expose the original-case display name for the validated `username` field."""
+
+    def validate_username(self, value):
+        canonical, display = split_username(value)
+        self._display_name = display
+        return canonical
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        attrs["display_name"] = getattr(self, "_display_name", attrs.get("username", ""))
+        return attrs
 
 
 class StrictBooleanField(serializers.BooleanField):
@@ -25,12 +49,9 @@ class StrictBooleanField(serializers.BooleanField):
         return data
 
 
-class CreateSessionSerializer(serializers.Serializer):
+class CreateSessionSerializer(_DisplayNameMixin, serializers.Serializer):
     username = serializers.CharField(min_length=1, max_length=50)
     session_name = serializers.CharField(min_length=1, max_length=100)
-
-    def validate_username(self, value):
-        return normalize_username(value)
 
     def validate_session_name(self, value):
         normalized = " ".join(value.split())
@@ -39,12 +60,9 @@ class CreateSessionSerializer(serializers.Serializer):
         return normalized
 
 
-class JoinSessionSerializer(serializers.Serializer):
+class JoinSessionSerializer(_DisplayNameMixin, serializers.Serializer):
     username = serializers.CharField(min_length=1, max_length=50)
     sessionId = serializers.CharField(min_length=1, max_length=20)
-
-    def validate_username(self, value):
-        return normalize_username(value)
 
     def validate_sessionId(self, value):
         normalized = canonical_session_id(value)

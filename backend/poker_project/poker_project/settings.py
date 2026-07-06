@@ -141,18 +141,33 @@ STORAGES = {
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
+# Throttle counters must survive across Vercel's separate serverless instances and cold
+# starts, so the default per-process LocMemCache is unusable. Use a database-backed cache on
+# the existing Neon Postgres (no paid Redis/KV). The table is created by migration
+# session_management.0010_cache_table (createcachetable), so no manual setup step is needed.
+# In-memory local cache is fine when there is no database (pure unit tests without DB access).
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "poker_cache_table",
+        "TIMEOUT": 3600,
+        "OPTIONS": {"MAX_ENTRIES": 20000, "CULL_FREQUENCY": 4},
+    }
+}
+
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "session_management.authentication.SessionCapabilityAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
-    "DEFAULT_THROTTLE_CLASSES": (
-        "rest_framework.throttling.AnonRateThrottle",
-        "rest_framework.throttling.UserRateThrottle",
-    ),
+    # No blanket anon/user throttle: with a DB-backed cache, a global throttle would write to
+    # the DB on every request, including the frontend's periodic room poll, needlessly burning
+    # Neon capacity. The abuse-sensitive unauthenticated entry points (create/join) keep their
+    # own IP-scoped throttles applied per view; authenticated mutations are capability-gated and
+    # self-scoped.
+    "DEFAULT_THROTTLE_CLASSES": (),
     "DEFAULT_THROTTLE_RATES": {
-        "anon": os.environ.get("API_ANON_RATE", "120/min"),
-        "user": os.environ.get("API_USER_RATE", "600/min"),
         "session_create": os.environ.get("API_SESSION_CREATE_RATE", "20/hour"),
         "session_join": os.environ.get("API_SESSION_JOIN_RATE", "60/hour"),
     },
@@ -161,6 +176,7 @@ REST_FRAMEWORK = {
 }
 
 SESSION_TTL_SECONDS = int(os.environ.get("SESSION_TTL_SECONDS", str(7 * 24 * 60 * 60)))
+SESSION_MAX_PARTICIPANTS = int(os.environ.get("SESSION_MAX_PARTICIPANTS", "50"))
 CAPABILITY_MAX_AGE_SECONDS = int(
     os.environ.get("CAPABILITY_MAX_AGE_SECONDS", str(30 * 24 * 60 * 60))
 )
@@ -175,6 +191,11 @@ CORS_ALLOWED_ORIGINS = env_list(
     if DEBUG
     else (),
 )
+# Vercel preview frontends get a new hostname hash every deploy, so a fixed origin list cannot
+# keep up when the preview calls the backend cross-origin. Allow matching them by regex — set this
+# ONLY on the disposable Preview environment (which holds no private data); leave it empty in
+# production, which is served same-origin through the /api rewrite and needs no CORS at all.
+CORS_ALLOWED_ORIGIN_REGEXES = env_list("CORS_ALLOWED_ORIGIN_REGEXES")
 CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS")
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

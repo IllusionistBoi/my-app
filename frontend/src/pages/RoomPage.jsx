@@ -25,7 +25,19 @@ import {
 import { friendlyError } from "../uiCopy.js";
 
 const VOTE_VALUES = [1, 2, 3, 5, 8, 13];
-const POLL_INTERVAL_MS = 4_000;
+// Poll faster while a round is open (people are watching who has voted); back off once revealed,
+// where the only thing left to observe is the host starting the next round.
+const ACTIVE_POLL_INTERVAL_MS = 5_000;
+const REVEALED_POLL_INTERVAL_MS = 9_000;
+
+function pollIntervalFor(session) {
+  return session?.is_revealed ? REVEALED_POLL_INTERVAL_MS : ACTIVE_POLL_INTERVAL_MS;
+}
+
+function toTime(value) {
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
 
 function newerSession(current, incoming) {
   if (!current) {
@@ -34,7 +46,11 @@ function newerSession(current, incoming) {
   if (incoming.round_number !== current.round_number) {
     return incoming.round_number > current.round_number ? incoming : current;
   }
-  return incoming.updated_at >= current.updated_at ? incoming : current;
+  return toTime(incoming.updated_at) >= toTime(current.updated_at) ? incoming : current;
+}
+
+function displayNameFor(session, username) {
+  return session?.display_names?.[username] || username;
 }
 
 function initials(username) {
@@ -133,7 +149,7 @@ function DeepLinkJoin({ sessionId, onJoined, pending, error }) {
   );
 }
 
-function ParticipantCard({ username, voteState, session, onRemove, busy }) {
+function ParticipantCard({ username, displayName, voteState, session, onRemove, busy }) {
   const isCurrent = username === session.current_user.username;
   const isCreator = username === session.created_by;
   const isSpectator = Boolean(voteState?.is_spectator);
@@ -141,11 +157,11 @@ function ParticipantCard({ username, voteState, session, onRemove, busy }) {
   return (
     <li className="participant-card">
       <div className="avatar" aria-hidden="true">
-        {initials(username)}
+        {initials(displayName)}
       </div>
       <div className="participant-copy">
         <div className="participant-name">
-          <strong>{username}</strong>
+          <strong>{displayName}</strong>
           {isCurrent ? <span className="badge">You</span> : null}
           {isCreator ? <span className="badge badge-dark">Host</span> : null}
         </div>
@@ -187,11 +203,11 @@ function ParticipantCard({ username, voteState, session, onRemove, busy }) {
             className="icon-button"
             disabled={busy}
             onClick={() => onRemove(username)}
-            title={`Remove ${username}`}
+            title={`Remove ${displayName}`}
             type="button"
           >
             <UserMinus aria-hidden="true" size={18} weight="bold" />
-            <span className="sr-only">Remove {username}</span>
+            <span className="sr-only">Remove {displayName}</span>
           </button>
         ) : null}
       </div>
@@ -304,17 +320,18 @@ export default function RoomPage() {
     }
 
     let stopped = false;
+    let inFlight = false;
     let timer = null;
     let controller = null;
 
     const schedule = () => {
       if (!stopped) {
-        timer = window.setTimeout(poll, POLL_INTERVAL_MS);
+        timer = window.setTimeout(poll, pollIntervalFor(sessionRef.current));
       }
     };
 
     async function poll() {
-      if (stopped) {
+      if (stopped || inFlight) {
         return;
       }
       if (document.hidden || actionRef.current || !window.navigator.onLine) {
@@ -322,6 +339,7 @@ export default function RoomPage() {
         return;
       }
 
+      inFlight = true;
       controller = new AbortController();
       try {
         const incoming = await sessionsApi.details(sessionId, token, {
@@ -337,12 +355,15 @@ export default function RoomPage() {
           handleAccessError(requestError, { background: Boolean(sessionRef.current) });
         }
       } finally {
+        inFlight = false;
         schedule();
       }
     }
 
     function refreshWhenVisible() {
-      if (!document.hidden) {
+      // If a poll is already running it will deliver fresh state and reschedule; only kick a new
+      // one when idle, so a burst of visibility events cannot stack overlapping requests.
+      if (!document.hidden && !inFlight) {
         window.clearTimeout(timer);
         void poll();
       }
@@ -414,13 +435,14 @@ export default function RoomPage() {
   }
 
   function removeParticipant(username) {
-    if (!window.confirm(`Show ${username} the door? Their current access will be revoked.`)) {
+    const label = displayNameFor(session, username);
+    if (!window.confirm(`Show ${label} the door? Their current access will be revoked.`)) {
       return;
     }
     void runAction(
       `remove-${username}`,
       () => sessionsApi.removeParticipant(sessionId, username, token),
-      `${username} left the table. Their card went with them.`,
+      `${label} left the table. Their card went with them.`,
     );
   }
 
@@ -549,8 +571,8 @@ export default function RoomPage() {
             </div>
             <h1 id="room-title">{session.name}</h1>
             <p>
-              {session.created_by} is holding the gavel. This table vanishes{" "}
-              {formatExpiry(session.expires_at)}.
+              {session.created_by_display_name || session.created_by} is holding the gavel. This
+              table vanishes {formatExpiry(session.expires_at)}.
             </p>
           </div>
         </section>
@@ -594,7 +616,7 @@ export default function RoomPage() {
                       style={{ "--result-index": index }}
                     >
                       <span className="result-value">{result.vote}</span>
-                      <strong>{username}</strong>
+                      <strong>{displayNameFor(session, username)}</strong>
                     </article>
                   ))}
                 </div>
@@ -727,6 +749,7 @@ export default function RoomPage() {
               {session.participants.map((username) => (
                 <ParticipantCard
                   busy={busy}
+                  displayName={displayNameFor(session, username)}
                   key={username}
                   onRemove={removeParticipant}
                   session={session}

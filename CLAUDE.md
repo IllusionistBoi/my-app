@@ -116,14 +116,16 @@ Do not rely on a developer machine's global Node or Python version. Clean instal
 | `DATABASE_URL` | Production/preview/CI | Pooled PostgreSQL connection string. Vercel injects it from the environment-scoped Neon integration. |
 | `DJANGO_ALLOWED_HOSTS` | Deployed environments | Comma-separated hostnames. Current Vercel value is `.vercel.app`. |
 | `CORS_ALLOWED_ORIGINS` | If cross-origin browser access is enabled | Comma-separated origins including scheme. Same-origin proxying should minimize this list. |
+| `CORS_ALLOWED_ORIGIN_REGEXES` | Preview only | Comma-separated regexes matching allowed browser origins. Use on Preview (disposable, no private data) because Vercel preview frontends get a fresh hostname each deploy; e.g. `^https://.*-ronits-projects-17727dad\.vercel\.app$`. Leave empty in production (served same-origin). |
 | `PUBLIC_APP_URL` | Backend | Public browser application linked from the API landing response. Defaults to the fixed free production alias. |
 | `CSRF_TRUSTED_ORIGINS` | Cookie/session admin flows | Comma-separated HTTPS origins trusted for CSRF. |
 | `DB_SSL_REQUIRED` | Optional | Defaults to `true` outside debug/tests; disable only for an explicitly local database. |
 | `DB_CONN_MAX_AGE` | Optional | Persistent database connection lifetime; default `60` seconds. |
 | `SESSION_TTL_SECONDS` | Optional | Room lifetime; default seven days. |
+| `SESSION_MAX_PARTICIPANTS` | Optional | Maximum active members per room; default `50`. `join/` returns `409 room_full` past it. |
 | `CAPABILITY_MAX_AGE_SECONDS` | Optional | Maximum signed capability age; room expiry still wins. |
-| `API_ANON_RATE`, `API_USER_RATE` | Optional | General DRF throttle rates. |
-| `API_SESSION_CREATE_RATE`, `API_SESSION_JOIN_RATE` | Optional | Anonymous room-entry throttle rates. |
+| `API_ANON_RATE`, `API_USER_RATE` | Deprecated | No longer applied. The blanket per-request throttle was removed on 2026-07-06 so the room poll does not write to the DB-backed cache on every call; create/join keep their own scoped throttles. |
+| `API_SESSION_CREATE_RATE`, `API_SESSION_JOIN_RATE` | Optional | Anonymous room-entry throttle rates, now counted in a shared `DatabaseCache`. |
 | `API_NUM_PROXIES` | Optional | Trusted proxy count for client-IP throttling; production default `1`. |
 | `VERCEL_GIT_COMMIT_SHA` | Vercel-provided | Exposed in health/version metadata after Git-backed deployments; do not override. |
 
@@ -254,8 +256,8 @@ Legacy participants/votes helper routes and global JWT obtain/refresh routes are
 - Use `401`, `403`, `404`, `409`, and `429` consistently.
 - Set `Cache-Control: no-store` on private room and capability responses.
 - Add request IDs to responses and structured logs.
-- Apply anonymous and member-scoped throttles.
-- Bound names, room sizes, room lifetime, and payload size.
+- Apply IP-scoped throttles to the unauthenticated entry points (`create`/`join`), backed by a shared cache. **Fixed 2026-07-06: throttle counters now use a Neon-backed `DatabaseCache` (`settings.CACHES`, table provisioned by migration `0011_cache_table`) so they hold across serverless instances instead of the old per-process `LocMemCache`. The blanket per-request anon/user throttle was removed so the periodic room poll does not write to the cache table on every call. See §25 finding 1.**
+- Bound names, room size, room lifetime, and payload size. **Fixed 2026-07-06: `join/` now enforces `SESSION_MAX_PARTICIPANTS` (default 50) and returns `409 room_full`. See §25 finding 2.**
 
 ## 11. Identity and authorization
 
@@ -269,8 +271,8 @@ Non-negotiable rules:
 - Vote/spectator mutations are self-only.
 - Reveal, reset, removal, and deletion are host-only.
 - Removed or expired memberships cannot continue acting.
-- Vote values remain private until authoritative reveal.
-- Secrets and authorization headers are redacted from logs.
+- Vote values remain private until authoritative reveal. **Fixed 2026-07-06: the Django admin now `exclude`s `votes`/`vote_results`/`capability_digest` from its forms and disables add, so that access path no longer discloses ballots. See §25 finding 5.**
+- Secrets and authorization headers are redacted from logs. **Fixed 2026-07-06: `logging.py`'s `JsonFormatter` now structurally scrubs `Bearer`/`Authorization` token substrings from messages and tracebacks, in addition to caller discipline. See §25 finding 8.**
 
 ## 12. State and concurrency
 
@@ -486,3 +488,88 @@ Update this file whenever a change affects:
 - backup, restore, rollback, or incident response.
 
 Use `README.md` for onboarding, `RUNNING.md` for the short local runbook, and `AUTH_DOCUMENTATION.md` for the security model. Avoid duplicating implementation details elsewhere.
+
+## 25. Audit findings (2026-07-06)
+
+Senior full-stack review of the deployed Hobby-tier app. Ordered by impact. Each item is what's
+wrong, where, why it matters, and the fix. Fixes are free-tier compatible — none require a paid
+add-on. Where a finding contradicts an earlier section, that section was corrected in place
+(§10 throttles + room size, §11 vote privacy + log redaction).
+
+Reviewer confidence: every claim below was verified against the source this session. One reported
+"HIGH" bug (RevealBurst animation not replaying) was investigated and **dismissed** — `RevealBurst`
+returns `null` when `burstKey` is falsy and `RoomPage` resets `burstKey` to `null` 1600 ms after each
+reveal (`RoomPage.jsx:288-291`), so the burst node fully unmounts between reveals and every reveal is
+a fresh mount. Not a bug.
+
+### Resolution status (updated 2026-07-06)
+
+All findings below were remediated the same day except #7 (deliberately deferred). The finding
+bodies are kept as the record of *why*; the changes that landed:
+
+- **1 — Fixed.** Added `CACHES` DatabaseCache on Neon (`settings.py`), migration `0011_cache_table` (`createcachetable`), and removed the blanket anon/user throttle so the poll doesn't write per request. Create/join keep scoped throttles.
+- **2 — Fixed.** `join_session` enforces `SESSION_MAX_PARTICIPANTS` (default 50) inside the locked transaction → `409 room_full`. New test `test_room_rejects_joins_past_the_participant_cap`.
+- **3 — Fixed.** Poll interval is now state-aware: 5 s while a round is open, 9 s once revealed (`RoomPage.jsx` `pollIntervalFor`). Overlap on visibility toggles is guarded by an `inFlight` flag (also finding 10).
+- **4 — Fixed.** Added `SessionMembership.display_name` (migration `0010`); serializer keeps the casefolded username as the identity key but preserves original case for display; API returns `display_names` + `created_by_display_name` + `current_user.display_name`; frontend renders those with a plain-username fallback. New tests cover casing on create and join.
+- **5 — Fixed.** `admin.py` now `exclude`s `votes`/`vote_results`/`capability_digest` and disables add.
+- **6 — Fixed.** Added deterministic `test_cast_vote_acquires_a_row_lock` (asserts `FOR UPDATE` via `CaptureQueriesContext`); fails if `select_for_update` is dropped. The probabilistic two-thread test is retained.
+- **7 — Deferred.** Self-hosting `rive.wasm` risks the 700 KB budget and needs binary vendoring + a build measurement; the existing pinned URL + fallback CDN + graceful CSS fallback keep the risk low. Do this deliberately with a bundle re-measure, not as a drive-by.
+- **8 — Fixed.** `JsonFormatter` scrubs `Bearer`/`Authorization` token substrings; new `test_bearer_tokens_and_auth_headers_are_redacted`.
+- **9 — Fixed.** The mascot success/error signal effect is now guarded by `prefersReducedMotionRef`.
+- **10 — Fixed (partial).** `newerSession` compares `updated_at` numerically (`Date.parse`); poll overlap guarded (finding 3); added `test_removed_member_token_cannot_mutate` and `test_expired_session_rejects_mutations`. Migration 0009's one-way `RunPython.noop` is left as-is and documented here as intentional.
+
+Verification: backend suite green (31 passed, 2 Postgres-only lock tests skip on SQLite and run in CI); `makemigrations --check` clean; `check --deploy` clean; migrations apply on a fresh DB. The frontend unit suite was **not** run locally (the machine has Node 20.9, below the project's Node 24 requirement for vitest 4 / vite 8); it runs in CI. Changes were kept backward-compatible with the existing frontend mocks (display-name helpers fall back to the plain username).
+
+### 1. Rate limiting is effectively a no-op on Vercel serverless (HIGH)
+- **Where:** `poker_project/settings.py` `REST_FRAMEWORK` throttles (anon 120/min, user 600/min, `session_create` 20/hour, `session_join` 60/hour); `session_management/throttles.py`. There is **no `CACHES` block anywhere** (verified by grep), so Django falls back to per-process `LocMemCache`.
+- **Why it matters:** DRF `SimpleRateThrottle` stores counters in the default cache. On Vercel each function invocation may hit a different warm instance and cold starts wipe memory, so counters are never shared. The throttles hold within one warm instance but reset constantly and are bypassable under concurrency — i.e. they fail exactly when abuse (room-creation floods, join enumeration) is happening. This also weakens the session-ID enumeration defense. Directly contradicts the §10 "apply throttles" invariant.
+- **Fix (free):** add a `DatabaseCache` on the existing Neon Postgres — `CACHES = {"default": {"BACKEND": "django.core.cache.backends.db.DatabaseCache", "LOCATION": "poker_throttle_cache"}}` plus `manage.py createcachetable` (add to the deploy/migration step). Shared across all instances, $0. Caveat: it adds one DB write per throttled request. Keep the `session_create`/`session_join` scoped throttles (low volume); **drop or greatly relax the blanket `anon`/`user` throttles** so the 4 s poll (finding 3) doesn't write to the cache table on every request and burn Neon CU.
+
+### 2. No cap on participants per room (MED)
+- **Where:** `views.py` `join_session` (218-273) — no membership-count check (verified: grep for any room-size/participant limit returns nothing; no `DATA_UPLOAD_MAX_MEMORY_SIZE` override either).
+- **Why it matters:** room state lives in the `Session.votes`/`vote_results` JSON blobs, which grow per participant. With finding 1's throttle ineffective, a room can be inflated to thousands of members → large JSON, slow serialization, and every 4 s poll returns a bloated payload amplified across all pollers (Neon storage + Vercel egress). Contradicts the §10 "bound room sizes" invariant.
+- **Fix (free):** in the existing locked transaction, `if SessionMembership.objects.filter(session=session, is_active=True).count() >= MAX_ROOM (e.g. 50): raise Conflict(code="room_full")` before creating the membership.
+
+### 3. 4-second polling cost vs Neon Free / Vercel Hobby (MED)
+- **Where:** `RoomPage.jsx:28` `POLL_INTERVAL_MS = 4_000`; poll loop 296-359. The architecture is correct for Hobby — polling, **not** websockets/SSE (serverless functions have max durations and would kill long-lived connections; do not "add websockets"). Polling already pauses when the tab is hidden, offline, or an action is in flight (lines 320-323), which is good.
+- **Why it matters:** each active participant GETs `/details/` every 4 s = 15 req/min each (~3 Neon queries per call). A 6-person room ≈ 90 req/min ≈ 5,400 req/hr. Sustained multi-room use can pressure Neon Free (100 CU-hours) and Hobby invocation limits. There is no adaptive backoff — a revealed/idle room polls at the same 4 s even though nothing changes until the host resets.
+- **Fix (free):** raise the interval to 6–8 s; back off (e.g. to 10–15 s) while `is_revealed` is true; optionally short-circuit unchanged polls with an `updated_at`/ETag check. Document the cost tradeoff (currently undocumented).
+
+### 4. Participant display names are force-lowercased (MED, UX quality)
+- **Where:** `serializers.py:12-18` `normalize_username` returns `" ".join(value.split()).casefold()`; every view stores/renders that value (`_serialize_session`). Room names are only whitespace-normalized (case preserved), so the two are inconsistent.
+- **Why it matters:** "Alice Smith" is shown to the whole room as "alice smith". Purely cosmetic but visible on every screen. (Global `User` rows keyed by the casefolded name are also shared across all sessions and never cleaned — `purge_expired_sessions` deletes only Sessions — so the `User` table grows unbounded; low priority for a disposable app.)
+- **Fix:** keep the casefolded value as the uniqueness/lookup key but persist and display an original-case display name (e.g. a `display_name` on `SessionMembership`, or store original case on `User.first_name` and render that).
+
+### 5. Django admin exposes raw votes and capability digests (MED, privacy)
+- **Where:** `admin.py` — `SessionAdmin` sets no `fields`/`exclude`, so the default change form renders **all** model fields, including `votes` and `vote_results` (raw per-player values, even before reveal). `SessionMembershipAdmin.readonly_fields` includes `capability_digest` (readonly = still displayed). Admin is also wired up (`poker_project/urls.py:9`) though the app has no admin workflow and no superuser is documented.
+- **Why it matters:** any staff/superuser can view unrevealed votes and every member's capability digest via `/admin/`, contradicting the §11/§13 "votes private until reveal" rule for that access path. Latent today (no superuser) but the surface exists.
+- **Fix (free):** simplest — remove `django.contrib.admin` from `INSTALLED_APPS` and drop the admin URL. If admin is kept, add `exclude = ("votes", "vote_results")` to `SessionAdmin`, drop `capability_digest` from the membership form, and restrict with `has_view_permission`.
+
+### 6. Concurrency guarantee is asserted but not deterministically proven (MED, test quality)
+- **Where:** `tests.py:548-593` `ConcurrentVoteTests.test_simultaneous_votes_are_not_lost` (Postgres-only). The production code is correct — mutations use `transaction.atomic()` + `select_for_update()` on the session row (`views.py`), and the concurrency model is sound.
+- **Why it matters:** the test casts votes as two *different* users and asserts both `has_voted`, which is the right lost-update postcondition, but `ThreadPoolExecutor.map` does not force the two read-modify-write windows to overlap inside the locked section. If timing serializes them, the test passes even with the lock removed — so it does not reliably guard against a regression. §12 states tests "must prove" this; today they exercise it probabilistically.
+- **Fix:** force overlap with a `threading.Barrier`/`Event` released only after the row lock is held but before commit, or wrap the requests in `CaptureQueriesContext` and assert a `FOR UPDATE` was emitted. Then deleting `select_for_update` fails the test.
+
+### 7. Rive WASM runtime fetched from third-party CDNs at runtime (LOW/MED, supply chain)
+- **Where:** `TeddyMascot.jsx:16-21` — module-scope `RuntimeLoader.setWasmUrl("https://unpkg.com/@rive-app/canvas-lite@2.38.4/rive.wasm")` + jsdelivr fallback; CSP (`vercel.json:33`) is loosened to allow those CDNs in `connect-src` plus `'wasm-unsafe-eval'`. `package.json` also declares both `@rive-app/canvas-lite` and `@rive-app/react-canvas-lite` as direct deps.
+- **Why it matters:** the homepage executes WebAssembly downloaded from a public CDN with no SRI. Mitigations exist (pinned version, fallback CDN, graceful CSS fallback on load error). The `.riv` asset is self-hosted; the WASM is CDN-loaded, likely to stay under the 700 KB budget.
+- **Fix (optional):** self-host `rive.wasm` from `/assets`, point `setWasmUrl` at same-origin, and drop unpkg/jsdelivr from CSP. Re-measure against the 700 KB budget. Also confirm the two Rive packages don't ship duplicate runtime glue in the bundle.
+
+### 8. Log redaction is by convention, with no regression test (LOW/MED, defense-in-depth)
+- **Where:** `poker_project/logging.py:9-21` — `JsonFormatter` emits `message` (`record.getMessage()`) and `exception` (traceback) with **no** scrubbing of `Bearer …` / `Authorization` / token-shaped strings. It is safe today only because callers are disciplined (`_audit` logs action/session_id/membership.pk; auth errors use static messages). No `assertLogs`-based test guards §11.
+- **Why it matters:** a future `logger.exception(f"... {token}")` or a logged `request.META` would leak in full with zero redaction. §11 states this is redacted; it's really "never passed to a logger."
+- **Fix:** add regex scrubbing of `Bearer\s+\S+` and `HTTP_AUTHORIZATION`-shaped keys in `JsonFormatter.format()`, plus a test asserting a known token never appears in captured log output.
+
+### 9. Reduced-motion: mascot success/error triggers fire on the paused instance (LOW)
+- **Where:** `TeddyMascot.jsx:70-80` fires `successTrigger?.fire()`/`failTrigger?.fire()` without checking `prefersReducedMotionRef.current`, even though 82-98 calls `rive.pause()` under reduced motion (and `followPointer` correctly checks the ref).
+- **Why it matters:** firing a trigger on a paused state machine can queue a pose that snaps when playback resumes — a small motion a reduced-motion user didn't opt into. No crash.
+- **Fix:** guard the signal effect with `prefersReducedMotionRef.current`, mirroring `followPointer`.
+
+### 10. Minor / latent
+- **`newerSession` string compare (LOW/NIT):** `RoomPage.jsx:30-38` compares ISO `updated_at` lexicographically. Works because DRF emits a consistent format; fragile if that ever changes. Fix: compare `Date.parse(updated_at)` numerically. (Round-number-first ordering is otherwise robust against stale/out-of-order polls.)
+- **Overlapping polls on rapid tab toggling (NIT):** `RoomPage.jsx:344-349` starts a new poll without aborting the in-flight one; `newerSession` dedups so no corruption — only a redundant request. Fix: abort `controller` before the refresh poll.
+- **Migration 0009 irreversibility (LOW, doc):** `migrations/0009_production_readiness.py` uses `RunPython(..., RunPython.noop)` and narrows `session_id` 50→20 with no data guard. Safe because the databases started empty (§19), but a footgun if copied for a real-data migration. Document it as intentionally one-way.
+- **Untested paths (LOW):** removed-member using an old token on a *mutation* (only the read path is tested), expired-session on mutations (only read/join tested), and `join`/`anon`/`user` throttles (only `create` throttle tested). Add the mutation-path assertions.
+
+### What's solid (do not "fix")
+Capability auth model (signed nonce + sha256 digest in DB, constant-time compare, revocable on removal, rotates on rejoin); vote privacy on the API path (`can_view_value` hides others' values, exposes only `has_voted`); atomic reveal/reset/vote with row locks; fail-closed settings (missing `SECRET_KEY`/`ALLOWED_HOSTS`/`DATABASE_URL` raise); strong CSP + security headers; `sessionStorage` token storage keyed by canonical id; route-level code-splitting; reduced-motion honored (CSS collapse + WelcomeIntro bypass), hover gated behind `(hover: hover) and (pointer: fine)`, animations limited to transform/opacity, `:focus-visible` + skip link; CI enforces the 300 KB/700 KB budget, migration-drift check, Postgres-backed tests, and high/critical dependency audits. The **polling-over-websockets** choice is correct for Hobby and should stay.

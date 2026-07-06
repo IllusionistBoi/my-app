@@ -54,6 +54,7 @@ class SessionMembership(models.Model):
     is_spectator = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     capability_digest = models.CharField(max_length=64, blank=True)
+    display_name = models.CharField(max_length=50, blank=True, default="")
 
     class Meta:
         constraints = [
