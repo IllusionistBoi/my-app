@@ -12,8 +12,8 @@ describe("TeddyMascot", () => {
     resetRiveTestInputs();
   });
 
-  it("tracks a mouse without rerendering and returns to the form value", () => {
-    const { container } = render(<TeddyMascot lookText="Ronit" />);
+  it("tracks a mouse without rerendering and returns to center", () => {
+    const { container } = render(<TeddyMascot />);
     const interaction = container.querySelector(".teddy-interaction");
     interaction.getBoundingClientRect = () => ({
       bottom: 200,
@@ -40,6 +40,15 @@ describe("TeddyMascot", () => {
     expect(getRiveTestInput("numLook").value).toBeCloseTo(48.5);
 
     fireEvent.pointerLeave(interaction, { pointerType: "mouse" });
-    expect(getRiveTestInput("numLook").value).toBe(22);
+    expect(getRiveTestInput("isChecking").value).toBe(false);
+    expect(getRiveTestInput("numLook").value).toBe(35);
+  });
+
+  it("covers its eyes when the periodic privacy beat is active", () => {
+    const { rerender } = render(<TeddyMascot handsUp={false} />);
+    expect(getRiveTestInput("isHandsUp").value).toBe(false);
+
+    rerender(<TeddyMascot handsUp />);
+    expect(getRiveTestInput("isHandsUp").value).toBe(true);
   });
 });

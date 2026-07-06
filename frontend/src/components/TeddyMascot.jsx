@@ -22,7 +22,6 @@ RuntimeLoader.setWasmFallbackUrl(
 
 export default function TeddyMascot({
   handsUp = false,
-  lookText = "",
   signal = null,
 }) {
   const [failed, setFailed] = useState(false);
@@ -49,18 +48,18 @@ export default function TeddyMascot({
   const successTrigger = useStateMachineInput(rive, STATE_MACHINE, "trigSuccess");
   const failTrigger = useStateMachineInput(rive, STATE_MACHINE, "trigFail");
 
-  const syncTextLook = useCallback(() => {
+  const resetLook = useCallback(() => {
     if (isChecking) {
-      isChecking.value = lookText.trim().length > 0;
+      isChecking.value = false;
     }
     if (lookPosition) {
-      lookPosition.value = Math.min(lookText.length * 4.4, 62);
+      lookPosition.value = 35;
     }
-  }, [isChecking, lookPosition, lookText]);
+  }, [isChecking, lookPosition]);
 
   useEffect(() => {
-    syncTextLook();
-  }, [syncTextLook]);
+    resetLook();
+  }, [resetLook]);
 
   useEffect(() => {
     if (isHandsUp) {
@@ -127,8 +126,8 @@ export default function TeddyMascot({
 
   const stopFollowingPointer = useCallback(() => {
     pointerBoundsRef.current = null;
-    syncTextLook();
-  }, [syncTextLook]);
+    resetLook();
+  }, [resetLook]);
 
   if (failed) {
     return (

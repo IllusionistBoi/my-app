@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -24,7 +24,9 @@ vi.mock("../api.js", () => ({
 }));
 
 vi.mock("../components/TeddyMascot.jsx", () => ({
-  default: () => <div data-testid="teddy-mascot" />,
+  default: ({ handsUp = false }) => (
+    <div data-hands-up={String(handsUp)} data-testid="teddy-mascot" />
+  ),
 }));
 
 import { sessionsApi } from "../api.js";
@@ -115,6 +117,42 @@ describe("planning-poker workflows", () => {
 
     expect(screen.getByRole("alert")).toHaveTextContent("ABC-123-XYZ");
     expect(sessionsApi.join).not.toHaveBeenCalled();
+  });
+
+  it("rotates a privacy quip while the teddy briefly covers its eyes", () => {
+    vi.useFakeTimers();
+    let view;
+    try {
+      view = renderHome();
+      const teddy = screen.getByTestId("teddy-mascot");
+
+      expect(screen.getByText("Move your cursor. I will follow.")).toBeInTheDocument();
+      expect(teddy).toHaveAttribute("data-hands-up", "false");
+
+      act(() => vi.advanceTimersByTime(5_000));
+      expect(
+        screen.getByText("Scout’s honour. Not a single point spotted."),
+      ).toBeInTheDocument();
+      expect(teddy).toHaveAttribute("data-hands-up", "true");
+
+      act(() => vi.advanceTimersByTime(1_700));
+      expect(teddy).toHaveAttribute("data-hands-up", "false");
+      expect(
+        screen.getByText("Scout’s honour. Not a single point spotted."),
+      ).toBeInTheDocument();
+
+      act(() => vi.advanceTimersByTime(700));
+      expect(screen.getByText("Move your cursor. I will follow.")).toBeInTheDocument();
+
+      act(() => vi.advanceTimersByTime(2_600));
+      expect(
+        screen.getByText("Privacy paws engaged. Your card is safe."),
+      ).toBeInTheDocument();
+      expect(teddy).toHaveAttribute("data-hands-up", "true");
+    } finally {
+      view?.unmount();
+      vi.useRealTimers();
+    }
   });
 
   it("turns a credential-free deep link into a prefilled join flow", async () => {

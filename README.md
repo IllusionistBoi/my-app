@@ -2,7 +2,7 @@
 
 Planning without the poker face: a playful, short-lived room for private estimates, synchronized reveals, spectators, and repeatable rounds.
 
-The experience uses the project’s original interactive Rive teddy, a portfolio-inspired warm-black/orange visual system, responsive card motion, reveal celebrations, and deliberately quirky feedback without compromising accessibility.
+The experience uses the project’s original interactive Rive teddy, a five-second skippable homepage welcome, a portfolio-inspired warm-black/orange visual system, responsive card motion, reveal celebrations, and deliberately quirky feedback without compromising accessibility. The teddy follows the cursor and periodically covers its eyes with a rotating privacy quip; it no longer reacts to off-screen form typing.
 
 ## Live application
 

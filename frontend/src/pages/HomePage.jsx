@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowDown, ArrowRight, LockKey, UsersThree } from "@phosphor-icons/react";
 import { useNavigate } from "react-router-dom";
 
@@ -21,8 +21,19 @@ const TICKER_ITEMS = [
   "Repeat until aligned",
 ];
 const TICKER_GROUPS = [0, 1];
+const PRIVACY_MESSAGES = [
+  "Scout’s honour. Not a single point spotted.",
+  "Privacy paws engaged. Your card is safe.",
+  "Looking away. The backlog may proceed.",
+  "No peeking. This bear has standards.",
+  "Eyes covered. Opinions stay unanchored.",
+  "Your estimate is none of my bear business.",
+];
+const PRIVACY_BEAT_INTERVAL = 5_000;
+const PRIVACY_POSE_DURATION = 1_700;
+const PRIVACY_MESSAGE_DURATION = 2_400;
 
-function FormField({ id, label, hint, onFocus, ...inputProps }) {
+function FormField({ id, label, hint, ...inputProps }) {
   const hintId = hint ? `${id}-hint` : undefined;
   return (
     <div className="field">
@@ -30,7 +41,6 @@ function FormField({ id, label, hint, onFocus, ...inputProps }) {
       <input
         id={id}
         aria-describedby={hintId}
-        onFocus={() => onFocus?.(id)}
         {...inputProps}
       />
       {hint ? (
@@ -48,24 +58,73 @@ export default function HomePage() {
   const [joinForm, setJoinForm] = useState({ username: "", sessionId: "" });
   const [pending, setPending] = useState(null);
   const [error, setError] = useState("");
-  const [activeField, setActiveField] = useState("create-name");
   const [mascotSignal, setMascotSignal] = useState(null);
+  const [privacyBeat, setPrivacyBeat] = useState({
+    active: false,
+    handsUp: false,
+    index: 0,
+  });
 
-  const mascotText =
-    activeField === "join-name"
-      ? joinForm.username
-      : activeField === "create-name"
-        ? createForm.username
-        : "";
-  const mascotHandsUp =
-    activeField === "session-name" || activeField === "session-id";
+  useEffect(() => {
+    const media =
+      typeof window.matchMedia === "function"
+        ? window.matchMedia("(prefers-reduced-motion: reduce)")
+        : null;
+    let messageTimer = 0;
+    let poseTimer = 0;
+    let intervalTimer = 0;
+    let nextIndex = 0;
+
+    const stop = () => {
+      window.clearTimeout(messageTimer);
+      window.clearTimeout(poseTimer);
+      window.clearInterval(intervalTimer);
+      messageTimer = 0;
+      poseTimer = 0;
+      intervalTimer = 0;
+      setPrivacyBeat((current) => ({
+        ...current,
+        active: false,
+        handsUp: false,
+      }));
+    };
+
+    const beginBeat = () => {
+      setPrivacyBeat({ active: true, handsUp: true, index: nextIndex });
+      nextIndex = (nextIndex + 1) % PRIVACY_MESSAGES.length;
+      window.clearTimeout(messageTimer);
+      window.clearTimeout(poseTimer);
+      poseTimer = window.setTimeout(() => {
+        setPrivacyBeat((current) => ({ ...current, handsUp: false }));
+      }, PRIVACY_POSE_DURATION);
+      messageTimer = window.setTimeout(() => {
+        setPrivacyBeat((current) => ({ ...current, active: false }));
+      }, PRIVACY_MESSAGE_DURATION);
+    };
+
+    const sync = () => {
+      stop();
+      if (!media?.matches) {
+        intervalTimer = window.setInterval(beginBeat, PRIVACY_BEAT_INTERVAL);
+      }
+    };
+
+    sync();
+    media?.addEventListener?.("change", sync);
+    return () => {
+      media?.removeEventListener?.("change", sync);
+      window.clearTimeout(messageTimer);
+      window.clearTimeout(poseTimer);
+      window.clearInterval(intervalTimer);
+    };
+  }, []);
+
+  const mascotHandsUp = privacyBeat.handsUp;
   const mascotMessage = error
     ? "That was not in the script."
-    : mascotHandsUp
-      ? "I am not peeking. Scout’s honour."
-      : mascotText
-        ? `Hello, ${mascotText.trim().split(/\s+/)[0] || "mystery planner"}.`
-        : "Move your cursor. I will keep an eye on it.";
+    : privacyBeat.active
+      ? PRIVACY_MESSAGES[privacyBeat.index]
+      : "Move your cursor. I will follow.";
 
   function signalMascot(type) {
     setMascotSignal({ type, id: window.crypto.randomUUID() });
@@ -166,11 +225,9 @@ export default function HomePage() {
             <div className="mascot-frame">
               <TeddyMascot
                 handsUp={mascotHandsUp}
-                lookText={mascotText}
                 signal={mascotSignal}
               />
             </div>
-            <p className="mascot-hint">Move. Type. Watch me react.</p>
           </aside>
         </section>
 
@@ -224,7 +281,6 @@ export default function HomePage() {
                 maxLength="50"
                 required
                 value={createForm.username}
-                onFocus={setActiveField}
                 onChange={(event) =>
                   setCreateForm((current) => ({
                     ...current,
@@ -243,7 +299,6 @@ export default function HomePage() {
                 placeholder="The sprint that definitely fits"
                 required
                 value={createForm.sessionName}
-                onFocus={setActiveField}
                 onChange={(event) =>
                   setCreateForm((current) => ({
                     ...current,
@@ -283,7 +338,6 @@ export default function HomePage() {
                 maxLength="50"
                 required
                 value={joinForm.username}
-                onFocus={setActiveField}
                 onChange={(event) =>
                   setJoinForm((current) => ({
                     ...current,
@@ -305,7 +359,6 @@ export default function HomePage() {
                 placeholder="ABC-123-XYZ"
                 required
                 value={joinForm.sessionId}
-                onFocus={setActiveField}
                 onChange={(event) =>
                   setJoinForm((current) => ({
                     ...current,

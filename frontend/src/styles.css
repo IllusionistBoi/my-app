@@ -196,6 +196,171 @@ p {
   border: 0;
 }
 
+html.welcome-lock {
+  overflow: hidden;
+}
+
+.welcome-intro {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.welcome-panel {
+  position: absolute;
+  z-index: -1;
+  right: 0;
+  left: 0;
+  background-color: var(--bg);
+  transition: transform 700ms var(--ease-in-out);
+}
+
+.welcome-panel-top {
+  top: 0;
+  height: 50.5%;
+  background-image: radial-gradient(
+    circle at 85% 0,
+    rgb(245 106 32 / 13%),
+    transparent 28rem
+  );
+}
+
+.welcome-panel-bottom {
+  bottom: 0;
+  height: 50%;
+  background-image: radial-gradient(
+    circle at 12% 100%,
+    rgb(130 64 27 / 10%),
+    transparent 24rem
+  );
+}
+
+.welcome-word {
+  position: relative;
+  margin: 0;
+  padding-inline: 1.25rem;
+  color: var(--ink);
+  font-family: "Clash Display", "Geist", sans-serif;
+  font-size: clamp(2.7rem, 7vw, 6.6rem);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 0.95;
+  text-align: center;
+  transition:
+    opacity 220ms ease,
+    transform 220ms var(--ease-out);
+}
+
+.welcome-word::before {
+  display: inline-block;
+  width: 0.42em;
+  height: 0.42em;
+  margin-right: 0.25em;
+  transform: translateY(-0.04em);
+  border-radius: 50%;
+  background: var(--accent);
+  content: "";
+}
+
+.welcome-word-final {
+  color: var(--accent-bright);
+  letter-spacing: -0.02em;
+}
+
+.welcome-progress {
+  position: absolute;
+  bottom: clamp(1.25rem, 4vw, 2.25rem);
+  left: clamp(1.25rem, 4vw, 3rem);
+  display: grid;
+  gap: 0.25rem;
+  color: var(--accent);
+  font-family: "Geist Mono", monospace;
+  transition: opacity 180ms ease;
+}
+
+.welcome-progress span {
+  font-size: clamp(1rem, 2vw, 1.35rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.welcome-progress small {
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.welcome-skip {
+  position: absolute;
+  right: clamp(1.25rem, 4vw, 3rem);
+  bottom: clamp(1.25rem, 4vw, 2.25rem);
+  padding: 0.55rem 0;
+  color: var(--paper-muted);
+  background: transparent;
+  font-size: 0.8rem;
+  font-weight: 650;
+  text-decoration: underline;
+  text-decoration-color: rgb(244 238 231 / 30%);
+  text-underline-offset: 0.3rem;
+  cursor: pointer;
+  transition: color 140ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .welcome-skip:hover {
+    color: var(--accent-pale);
+  }
+}
+
+.welcome-intro-exiting .welcome-panel-top,
+.welcome-intro-skipping .welcome-panel-top {
+  transform: translateY(-101%);
+}
+
+.welcome-intro-exiting .welcome-panel-bottom,
+.welcome-intro-skipping .welcome-panel-bottom {
+  transform: translateY(101%);
+}
+
+.welcome-intro-exiting .welcome-word,
+.welcome-intro-skipping .welcome-word {
+  transform: translateY(-0.75rem) scale(0.97);
+  opacity: 0;
+}
+
+.welcome-intro-exiting .welcome-progress,
+.welcome-intro-exiting .welcome-skip,
+.welcome-intro-skipping .welcome-progress,
+.welcome-intro-skipping .welcome-skip {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.welcome-intro-skipping .welcome-panel {
+  transition-duration: 220ms;
+}
+
+@media (max-width: 479px) {
+  .welcome-progress small {
+    display: none;
+  }
+}
+
+.route-loading {
+  color: var(--muted);
+  font-family: "Geist Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .grain {
   position: fixed;
   z-index: 30;
@@ -497,7 +662,7 @@ p {
 .mascot-frame {
   position: absolute;
   z-index: 2;
-  inset: 4.2rem 1.25rem 2.9rem;
+  inset: 4.2rem 1.25rem 1.25rem;
 }
 
 .teddy-interaction {
@@ -529,23 +694,6 @@ p {
   transition:
     opacity 180ms ease,
     transform 180ms var(--ease-out);
-}
-
-.mascot-hint {
-  position: absolute;
-  z-index: 4;
-  right: 1.3rem;
-  bottom: 1rem;
-  left: 1.3rem;
-  margin: 0;
-  color: rgb(23 17 13 / 70%);
-  font-family: "Geist Mono", monospace;
-  font-size: 0.61rem;
-  font-weight: 620;
-  letter-spacing: 0.02em;
-  line-height: 1.4;
-  text-align: right;
-  text-transform: uppercase;
 }
 
 .mascot-orbit {
@@ -1838,19 +1986,13 @@ p {
   }
 
   .mascot-frame {
-    inset: 4.1rem 0.2rem 2.8rem;
+    inset: 4.1rem 0.2rem 1rem;
   }
 
   .mascot-orbit {
     width: 3rem;
     height: 4.2rem;
     font-size: 1.1rem;
-  }
-
-  .mascot-hint {
-    right: 1rem;
-    bottom: 0.85rem;
-    left: 1rem;
   }
 
   .entry-section {
@@ -1983,6 +2125,10 @@ p {
   }
 
   .reveal-burst {
+    display: none;
+  }
+
+  .welcome-intro {
     display: none;
   }
 }

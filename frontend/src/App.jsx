@@ -1,7 +1,8 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Link, Route, Routes, useLocation } from "react-router-dom";
 
 import SiteFooter from "./components/SiteFooter.jsx";
+import WelcomeIntro from "./components/WelcomeIntro.jsx";
 
 const HomePage = lazy(() => import("./pages/HomePage.jsx"));
 const RoomPage = lazy(() => import("./pages/RoomPage.jsx"));
@@ -38,8 +39,12 @@ function NotFoundPage() {
 }
 
 export default function App() {
+  const { pathname } = useLocation();
+  const [showWelcome] = useState(() => pathname === "/");
+
   return (
     <>
+      {showWelcome ? <WelcomeIntro /> : null}
       <a className="skip-link" href="#main-content">
         Skip to main content
       </a>
@@ -47,13 +52,8 @@ export default function App() {
       <Suspense
         fallback={
           <main className="centered-page" id="main-content">
-            <div className="loading-state" role="status">
-              <div className="loading-deck" aria-hidden="true">
-                <i>3</i>
-                <i>5</i>
-                <i>8</i>
-              </div>
-              <p>Shuffling something sensible…</p>
+            <div className="route-loading" role="status">
+              Taking your seat…
             </div>
           </main>
         }

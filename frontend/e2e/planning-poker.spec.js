@@ -34,6 +34,7 @@ test("two participants keep votes private until the host reveals", async ({
     const participantPage = await participantContext.newPage();
     participantErrors = capturePageErrors(participantPage);
     await participantPage.goto(hostPage.url());
+    await expect(participantPage.locator(".welcome-intro")).toHaveCount(0);
     await expect(
       participantPage.getByRole("heading", {
         name: "Name yourself, mysterious estimator.",
@@ -107,15 +108,39 @@ test("home and room-entry layouts do not overflow at 320px", async ({ page }) =>
   expect(pageErrors).toEqual([]);
 });
 
+test("the homepage welcome completes cleanly and hands off to the teddy", async ({
+  page,
+}) => {
+  test.setTimeout(15_000);
+  await page.goto("/");
+
+  await expect(page.locator(".welcome-intro")).toBeVisible();
+  await expect(page.locator(".welcome-progress span")).toContainText("%");
+  await expect(page.getByRole("button", { name: "Skip intro" })).toBeVisible();
+  await expect(page.getByText("The table is yours.")).toBeVisible({
+    timeout: 5_000,
+  });
+  await expect(page.locator(".welcome-intro")).toHaveCount(0, {
+    timeout: 6_000,
+  });
+  await expect(page.locator(".mascot-speech")).toContainText("Scout’s honour", {
+    timeout: 2_500,
+  });
+  await expect(page.locator(".mascot-hint")).toHaveCount(0);
+});
+
 test("desktop composition stays aligned and the ticker loops without a gap", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
+  await page.getByRole("button", { name: "Skip intro" }).click();
+  await expect(page.locator(".welcome-intro")).toHaveCount(0);
   await page.evaluate(() => document.fonts.ready);
 
   await expect(page.getByText("Original Rive teddy")).toHaveCount(0);
-  await expect(page.locator(".mascot-hint")).toContainText("react");
+  await expect(page.locator(".mascot-hint")).toHaveCount(0);
+  await expect(page.locator(".mascot-speech")).toBeVisible();
 
   const [createBox, joinBox] = await Promise.all([
     page.locator(".entry-card-create").boundingBox(),
@@ -152,6 +177,7 @@ test("reduced motion keeps the design readable without perpetual movement", asyn
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
 
+  await expect(page.locator(".welcome-intro")).toHaveCount(0);
   await expect(page.locator(".mascot-stage")).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Call the bluff. Find the estimate." }),

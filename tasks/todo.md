@@ -376,6 +376,17 @@ Phase 9 verification notes:
 - 2026-07-06: Final source verification passed again under pinned Node 24: 13/13 frontend tests, a 618,206-byte production build under both size budgets, clean diff checks, and 4/4 full-stack browser flows with guaranteed room cleanup.
 - 2026-07-06: Release `30cb70a` passed five GitHub CI jobs, reached `READY` on both Vercel projects, passed 4/4 live browser flows, returned HTTP 200 from both frontend aliases and both API entry points, passed the free uptime workflow and produced no Vercel runtime-error clusters.
 
+### Phase 10 — homepage intro and mascot choreography
+
+- [x] Replace the transient Suspense card loader on direct homepage loads with a five-second, timestamp-driven welcome sequence inspired by the portfolio intro.
+- [x] Add poker-specific rotating phrases, a live `00%` to `100%` counter, a quick skip control, a split-panel exit, a hard failsafe and reduced-motion bypass.
+- [x] Keep room deep links immediate and retain a lightweight non-theatrical route fallback for lazy room loading.
+- [x] Remove all name/input tracking from the teddy; retain mouse following plus success/failure reactions only.
+- [x] Trigger the teddy's hands-over-eyes state every five seconds, briefly rotate through six non-repeating privacy quips, and disable the periodic movement under reduced motion.
+- [x] Remove the clipped mascot footer hint and make the visible speech bubble explain the remaining cursor interaction.
+- [x] Add unit and browser regression coverage for intro timing/skip/reduced motion, periodic mascot privacy beats, deep-link bypass and zero visual overflow.
+- [ ] Run the animation-review gate, complete local visual checks at desktop/mobile widths, update project documentation, then commit, push and verify the live release.
+
 ## Definition of done
 
 - No P0 findings remain in code or deployment configuration.

@@ -299,6 +299,8 @@ On PostgreSQL, wrap JSON or row-based state transitions in `transaction.atomic()
 - Honor reduced-motion preferences.
 - Keep the single-accent warm-black/orange visual system and self-hosted Clash Display/Geist typography coherent across every route.
 - Keep `TeddyMascot` isolated from form/page state except for its small input prop contract; preserve its CSS fallback and reduced-motion pause.
+- Keep `WelcomeIntro` homepage-only, skippable, timestamp-driven and absent from direct room links. Reduced-motion users must bypass it.
+- Teddy pointer tracking must not use React state. Its periodic privacy pose may use low-frequency state, but form focus and typing must not control the mascot.
 - Use the Rive celebration only for meaningful state changes. Frequent actions need fast tactile feedback, not long animation.
 - Animate transform and opacity; gate hover transforms behind fine-pointer media queries.
 - Preserve the 300 KB largest-JavaScript budget. The 700 KB total budget explicitly includes the restored Rive file and self-hosted fonts.

@@ -53,7 +53,7 @@ The original teddy was recovered from pre-cleanup Git object `57cf108430f4f90017
 - State machine: `Login Machine`
 - Inputs used: `isChecking`, `isHandsUp`, `numLook`, `trigSuccess`, `trigFail`
 
-`TeddyMascot.jsx` isolates the Rive runtime. The teddy follows horizontal mouse movement, follows typed name length, covers its eyes while room details are entered, and responds to success/failure signals. Pointer updates bypass React rendering. It pauses for `prefers-reduced-motion` and falls back to a small CSS teddy if the Rive file cannot load.
+`TeddyMascot.jsx` isolates the Rive runtime. The teddy follows horizontal mouse movement and responds to success/failure signals, but deliberately ignores form focus and typing because the inputs sit below the fold. Every five seconds the homepage briefly raises the teddy's paws and rotates through six privacy quips without repeating the previous line. The paws begin lowering before the message clears so copy and physical motion remain synchronized. Pointer updates bypass React rendering. The periodic beat and pointer tracking stop under `prefers-reduced-motion`; a small CSS teddy remains available if the Rive file cannot load.
 
 The canvas-lite runtime was chosen because this legacy vector file does not use Rive Text or other advanced renderer-only features. The `.riv` file is approximately 35 KB.
 
@@ -64,6 +64,8 @@ The matching 2.38.4 WASM runtime is pinned to `unpkg.com` with an exact-version 
 - UI press feedback uses a fast `scale(0.97)` response.
 - Hover motion is enabled only for fine pointers.
 - Page and card entrances animate only `transform` and `opacity`.
+- Direct homepage loads use a five-second, timestamp-driven welcome with six poker-specific phrases, a live percentage, a quick Skip control and a split-panel exit.
+- Invite/deep-link room loads bypass the welcome entirely; reduced-motion users do too.
 - Vote cards deal in with a short 45 ms stagger.
 - Live status breathes subtly.
 - The ticker uses constant linear motion because it is purely decorative.
@@ -82,6 +84,7 @@ The matching 2.38.4 WASM runtime is pinned to `unpkg.com` with an exact-version 
 ### Components added
 
 - `TeddyMascot.jsx` — isolated Rive state-machine integration and fallback.
+- `WelcomeIntro.jsx` — isolated homepage-only welcome timing, progress, skip, failsafe and reduced-motion behavior.
 - `RevealBurst.jsx` — one-shot, presentation-only reveal celebration.
 - `SiteFooter.jsx` — portfolio/source links and project signature.
 - `uiCopy.js` — shared friendly error mapping.
@@ -99,6 +102,10 @@ The 6 July 2026 correction was driven by full-page home, room, ready, focused an
 - Removed the reveal placard and kept a short, non-obscuring particle flourish.
 - Moved connection status beside round metadata and contained participant actions inside each row.
 - Reduced section/footer whitespace and made the skip link appear immediately for keyboard focus.
+
+### Welcome and mascot correction
+
+The follow-up on 6 July 2026 removed the clipped “Move. Type. Watch me react.” footer label and the illogical form-driven teddy reactions. The visible speech bubble now explains cursor following. The portfolio's timestamp-driven intro architecture was adapted into original Planning Poker copy rather than copied literally: “Hello.” leads through a short table-preparation sequence, reaches `100%` when the closing phrase lands, then two panels reveal the app. The complete sequence is approximately five seconds including its exit and always offers an immediate Skip control.
 
 ### Development and performance
 
@@ -145,5 +152,12 @@ Production screenshot-correction release completed on 6 July 2026:
 - Live Playwright passed 4/4 against the new primary alias, including the complete two-participant workflow and disposable-room cleanup.
 - The direct API root now describes the backend and links visitors to the browser application instead of returning 404.
 - The manually triggered free uptime workflow passed, and both Vercel projects reported no runtime errors.
+
+Local welcome-and-mascot verification completed on 6 July 2026:
+
+- Node 24 unit tests: 18/18 passed across six files, including intro timing, percentage, Skip, reduced motion, cursor tracking, hands-up state and rotating privacy copy.
+- Production build: 623,958 bytes total; largest JavaScript chunk 239,926 bytes, below both enforced budgets.
+- Playwright: 5/5 passed against the isolated backend, including the complete two-participant workflow, direct-room intro bypass, the full homepage welcome, 320 px no-overflow, aligned desktop composition and reduced motion.
+- Manual browser review: intro start/final/handoff, actual Rive hands-over-eyes pose, synchronized return copy, desktop hero, 320 px intro and mobile teddy panel inspected with no console warnings or errors.
 
 Detailed security, backend, deployment, recovery and free-plan operations remain canonical in `CLAUDE.md`. The full audit and implementation chronology live in `tasks/todo.md`.
