@@ -385,7 +385,12 @@ Phase 9 verification notes:
 - [x] Trigger the teddy's hands-over-eyes state every five seconds, briefly rotate through six non-repeating privacy quips, and disable the periodic movement under reduced motion.
 - [x] Remove the clipped mascot footer hint and make the visible speech bubble explain the remaining cursor interaction.
 - [x] Add unit and browser regression coverage for intro timing/skip/reduced motion, periodic mascot privacy beats, deep-link bypass and zero visual overflow.
-- [ ] Run the animation-review gate, complete local visual checks at desktop/mobile widths, update project documentation, then commit, push and verify the live release.
+- [x] Run the animation-review gate, complete local visual checks at desktop/mobile widths, update project documentation, then commit, push and verify the live release.
+
+Phase 10 verification notes:
+
+- 2026-07-06: Local verification passed 18/18 unit tests, a 623,958-byte production build under both budgets, 5/5 full-stack Playwright flows, desktop and 320 px visual review, the real Rive privacy pose and a clean browser console.
+- 2026-07-06: Release `daa20e4` passed all five GitHub CI jobs, reached `READY` on both Vercel projects, passed 5/5 live Playwright flows and the free uptime workflow, returned HTTP/API 200 from the fixed domain and produced no runtime-error clusters.
 
 ## Definition of done
 
@@ -429,4 +434,5 @@ _No application behavior changes started before completion of this findings regi
 - 2026-07-05: Recovered the original `animated_login_character.riv` teddy from pre-cleanup Git history and rebuilt the frontend around a warm-black/orange portfolio-inspired visual system. Added state-driven Rive reactions, locally hosted Clash/Geist fonts, a complete footer, quirky typed feedback, reveal commentary, tactile card motion, a reduced-motion-safe card burst, pinned Rive WASM hosts under CSP, and a preview-backed local review proxy.
 - 2026-07-05: Redesign verification passed locally: clean Node 24 install, 10/10 unit tests, 3/3 Playwright flows with two isolated participants, hidden votes, reveal/reset/cleanup, 320px no-overflow and reduced-motion checks; 617,287-byte build under the 700KB total/300KB JS ceilings; zero npm advisories; and 23 backend tests passed with one expected PostgreSQL-only local skip.
 - 2026-07-06: Corrected the screenshot-reported design regressions, added test-backed teddy pointer tracking, attached the free `planning-poker-ronit.vercel.app` alias, replaced the API project's confusing root 404 with a service landing response, and verified the complete release locally and in production.
+- 2026-07-06: Replaced the transient card loader with an original five-second poker welcome adapted from the portfolio's timestamp-driven intro architecture; removed off-screen form coupling from the teddy and added synchronized five-second privacy poses with six rotating quips.
 - Remaining paid-only options are intentionally declined: purchased custom domain, Vercel monitoring add-ons, and database upgrades.

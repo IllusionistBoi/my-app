@@ -160,4 +160,11 @@ Local welcome-and-mascot verification completed on 6 July 2026:
 - Playwright: 5/5 passed against the isolated backend, including the complete two-participant workflow, direct-room intro bypass, the full homepage welcome, 320 px no-overflow, aligned desktop composition and reduced motion.
 - Manual browser review: intro start/final/handoff, actual Rive hands-over-eyes pose, synchronized return copy, desktop hero, 320 px intro and mobile teddy panel inspected with no console warnings or errors.
 
+Production welcome-and-mascot release completed on 6 July 2026:
+
+- Application commit `daa20e4549f23b4006e69fcc69a789a599c8543b` passed all five GitHub CI jobs and reached `READY` on both Vercel projects.
+- `planning-poker-ronit.vercel.app` resolved to that exact deployment, returned HTTP 200 and reported the matching API release SHA.
+- Live Playwright passed 5/5, including the full welcome, direct-room bypass, two-participant room lifecycle, 320 px layout and reduced motion.
+- The manually triggered free uptime workflow passed, and both Vercel projects reported no runtime-error clusters.
+
 Detailed security, backend, deployment, recovery and free-plan operations remain canonical in `CLAUDE.md`. The full audit and implementation chronology live in `tasks/todo.md`.
