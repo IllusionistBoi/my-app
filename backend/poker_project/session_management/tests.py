@@ -7,7 +7,8 @@ from django.apps import apps
 from django.core.cache import cache
 from django.core.management import call_command
 from django.db import close_old_connections, connection
-from django.test import TransactionTestCase, override_settings
+from django.test import SimpleTestCase, TransactionTestCase, override_settings
+from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
@@ -540,6 +541,71 @@ class SessionAPITests(APITestCase):
         with self.assertRaises(LookupError):
             apps.get_model("session_management", "UserSession")
 
+    def test_display_name_preserves_original_casing(self):
+        _, _, response = self.create_session(username="Alice Smith")
+        session = response.data["session"]
+        # Identity/lookup key stays casefolded; presentation keeps the original casing.
+        self.assertEqual(session["participants"], ["alice smith"])
+        self.assertEqual(session["current_user"]["username"], "alice smith")
+        self.assertEqual(session["display_names"]["alice smith"], "Alice Smith")
+        self.assertEqual(session["created_by_display_name"], "Alice Smith")
+        self.assertEqual(session["current_user"]["display_name"], "Alice Smith")
+
+    def test_join_display_name_is_returned_and_updates_on_rejoin(self):
+        session_id, _, _ = self.create_session("alice")
+        _, join_response = self.join_session(session_id, "Bob Jones")
+        self.assertEqual(
+            join_response.data["session"]["display_names"]["bob jones"], "Bob Jones"
+        )
+
+    @override_settings(SESSION_MAX_PARTICIPANTS=2)
+    def test_room_rejects_joins_past_the_participant_cap(self):
+        session_id, _, _ = self.create_session("alice")
+        self.join_session(session_id, "bob")
+        self.client.credentials()
+        response = self.client.post(
+            "/api/sessions/join/",
+            {"username": "carol", "sessionId": session_id},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
+        self.assertEqual(response.data["error"]["code"], "room_full")
+
+    def test_removed_member_token_cannot_mutate(self):
+        session_id, host_token, _ = self.create_session("alice")
+        bob_token, _ = self.join_session(session_id, "bob")
+        self.client.credentials()
+        removal = self.client.post(
+            f"/api/sessions/{session_id}/remove_user/",
+            {"username": "bob"},
+            format="json",
+            **bearer(host_token),
+        )
+        self.assertEqual(removal.status_code, status.HTTP_200_OK, removal.data)
+
+        self.client.credentials()
+        vote = self.client.post(
+            f"/api/sessions/{session_id}/cast_vote/",
+            {"vote": 5},
+            format="json",
+            **bearer(bob_token),
+        )
+        self.assertEqual(vote.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_expired_session_rejects_mutations(self):
+        session_id, token, _ = self.create_session("alice")
+        Session.objects.filter(session_id=session_id).update(
+            expires_at=timezone.now() - timedelta(seconds=1)
+        )
+        self.client.credentials()
+        response = self.client.post(
+            f"/api/sessions/{session_id}/cast_vote/",
+            {"vote": 5},
+            format="json",
+            **bearer(token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_410_GONE)
+
 
 @skipUnless(connection.vendor == "postgresql", "PostgreSQL row-lock test")
 class ConcurrentVoteTests(TransactionTestCase):
@@ -590,3 +656,52 @@ class ConcurrentVoteTests(TransactionTestCase):
         ).data
         self.assertTrue(state["votes"]["alice"]["has_voted"])
         self.assertTrue(state["votes"]["bob"]["has_voted"])
+
+    def test_cast_vote_acquires_a_row_lock(self):
+        """Deterministic guard: casting a vote must emit SELECT ... FOR UPDATE.
+
+        The two-thread test above only probabilistically exercises the lock; this fails
+        immediately if select_for_update() is ever dropped from the vote path.
+        """
+        client = APIClient()
+        created = client.post(
+            "/api/sessions/create/",
+            {"username": "alice", "session_name": "Locking"},
+            format="json",
+        ).data
+        session_id = created["session"]["session_id"]
+        token = created["participant_token"]
+
+        with CaptureQueriesContext(connection) as queries:
+            response = client.post(
+                f"/api/sessions/{session_id}/cast_vote/",
+                {"vote": 5},
+                format="json",
+                **bearer(token),
+            )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(
+            any("FOR UPDATE" in entry["sql"].upper() for entry in queries.captured_queries),
+            "cast_vote must lock the session row with select_for_update()",
+        )
+
+
+class LoggingRedactionTests(SimpleTestCase):
+    def test_bearer_tokens_and_auth_headers_are_redacted(self):
+        from poker_project.logging import JsonFormatter
+        import logging as std_logging
+
+        formatter = JsonFormatter()
+        secret = "capabilitytokenABCDEF1234567890"
+        record = std_logging.LogRecord(
+            name="test",
+            level=std_logging.ERROR,
+            pathname=__file__,
+            lineno=1,
+            msg="call failed with Authorization: Bearer %s",
+            args=(secret,),
+            exc_info=None,
+        )
+        output = formatter.format(record)
+        self.assertNotIn(secret, output)
+        self.assertIn("[REDACTED]", output)

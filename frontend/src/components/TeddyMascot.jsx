@@ -68,7 +68,7 @@ export default function TeddyMascot({
   }, [handsUp, isHandsUp]);
 
   useEffect(() => {
-    if (!signal) {
+    if (!signal || prefersReducedMotionRef.current) {
       return;
     }
     if (signal.type === "success") {
