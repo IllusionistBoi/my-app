@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Link, Route, Routes, useLocation } from "react-router-dom";
+import { Analytics } from "@vercel/analytics/react";
 
 import SiteFooter from "./components/SiteFooter.jsx";
 import WelcomeIntro from "./components/WelcomeIntro.jsx";
@@ -64,6 +65,7 @@ export default function App() {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
+      <Analytics />
     </>
   );
 }
