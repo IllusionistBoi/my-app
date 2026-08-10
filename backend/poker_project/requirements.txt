@@ -1,9 +1,9 @@
 Django==5.2.15
-asgiref==3.11.1
+asgiref==3.12.1
 dj-database-url==3.1.2
 django-cors-headers==4.9.0
-djangorestframework==3.17.1
+djangorestframework==3.17.2
 psycopg[binary]==3.3.4
 sqlparse==0.5.5
-tzdata==2026.2
+tzdata==2026.3
 whitenoise==6.12.0
